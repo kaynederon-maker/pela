@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6e6d2"/><stop offset="1" stop-color="#fbf7f1"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#sky)"/>
+  <circle cx="620" cy="140" r="70" fill="#efd3b0"/>
+  <path d="M0 470 Q200 410 400 450 T800 430 V600 H0Z" fill="#e4ece2"/>
+  <!-- Pechi -->
+  <g transform="translate(250 250)">
+    <path d="M-50 -10 L-38 -95 L-8 -30 Z" fill="#b5762f"/>
+    <path d="M50 -10 L38 -95 L8 -30 Z" fill="#b5762f"/>
+    <ellipse cx="0" cy="20" rx="58" ry="55" fill="#c8873a"/>
+    <path d="M-30 30 Q0 85 30 30 Q15 70 0 72 Q-15 70 -30 30Z" fill="#3a2a20"/>
+    <circle cx="-20" cy="10" r="6" fill="#2b2420"/><circle cx="20" cy="10" r="6" fill="#2b2420"/>
+    <ellipse cx="0" cy="40" rx="9" ry="6" fill="#2b2420"/>
+    <ellipse cx="0" cy="200" rx="80" ry="120" fill="#c8873a"/>
+  </g>
+  <!-- Bella -->
+  <g transform="translate(500 300)">
+    <ellipse cx="-48" cy="5" rx="18" ry="38" fill="#8a5a3c" transform="rotate(20 -48 5)"/>
+    <ellipse cx="48" cy="5" rx="18" ry="38" fill="#8a5a3c" transform="rotate(-20 48 5)"/>
+    <ellipse cx="0" cy="15" rx="50" ry="48" fill="#f3e3cf"/>
+    <ellipse cx="18" cy="0" rx="17" ry="14" fill="#8a5a3c"/>
+    <circle cx="-16" cy="8" r="5.5" fill="#2b2420"/><circle cx="16" cy="6" r="5.5" fill="#2b2420"/>
+    <ellipse cx="0" cy="32" rx="8" ry="6" fill="#d07b72"/>
+    <ellipse cx="0" cy="170" rx="72" ry="110" fill="#f3e3cf"/>
+  </g>
+</svg>

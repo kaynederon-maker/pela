@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+contracts/coverage/
+contracts/coverage.json
+web/.next/
+web/*.db
+web/next-env.d.ts
+install-pela.ps1

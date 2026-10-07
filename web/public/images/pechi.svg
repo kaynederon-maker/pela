@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="300" fill="#f6e6d2"/>
+  <circle cx="320" cy="60" r="90" fill="#efd3b0"/>
+  <!-- Malinois: tall pointed ears, fawn coat, dark mask -->
+  <path d="M150 120 L165 45 L195 105 Z" fill="#b5762f"/>
+  <path d="M250 120 L235 45 L205 105 Z" fill="#b5762f"/>
+  <ellipse cx="200" cy="150" rx="62" ry="58" fill="#c8873a"/>
+  <path d="M168 160 Q200 215 232 160 Q215 200 200 202 Q185 200 168 160Z" fill="#3a2a20"/>
+  <circle cx="180" cy="140" r="6" fill="#2b2420"/>
+  <circle cx="220" cy="140" r="6" fill="#2b2420"/>
+  <ellipse cx="200" cy="172" rx="10" ry="7" fill="#2b2420"/>
+  <ellipse cx="200" cy="300" rx="95" ry="90" fill="#c8873a"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="300" fill="#f8e1de"/>
+  <circle cx="80" cy="70" r="90" fill="#f2cfc9"/>
+  <!-- Bella: floppy ears, cream + brown patches -->
+  <ellipse cx="148" cy="140" rx="22" ry="45" fill="#8a5a3c" transform="rotate(20 148 140)"/>
+  <ellipse cx="252" cy="140" rx="22" ry="45" fill="#8a5a3c" transform="rotate(-20 252 140)"/>
+  <ellipse cx="200" cy="150" rx="58" ry="56" fill="#f3e3cf"/>
+  <ellipse cx="222" cy="132" rx="20" ry="16" fill="#8a5a3c"/>
+  <circle cx="182" cy="142" r="6" fill="#2b2420"/>
+  <circle cx="220" cy="140" r="6" fill="#2b2420"/>
+  <ellipse cx="200" cy="170" rx="9" ry="6.5" fill="#d07b72"/>
+  <path d="M190 182 Q200 192 210 182" stroke="#2b2420" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="200" cy="300" rx="90" ry="88" fill="#f3e3cf"/>
+</svg>
