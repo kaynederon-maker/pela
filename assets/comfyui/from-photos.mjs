@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
+import { tmpdir } from "node:os";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, "..", "..", "web", "public", "images");
@@ -29,7 +30,7 @@ const STYLE =
   "soft editorial pet photography, seamless paper studio backdrop, soft diffused window light, gentle shadow under the dog, " +
   "minimalist, elegant, warm and joyful, crisp detailed short fur, sharp eyes, 85mm lens, shallow depth of field";
 const NEGATIVE =
-  "leather sofa, couch, furniture, blanket, room, clutter, text, watermark, logo, frame, blurry, deformed, extra limbs, " +
+  "human, person, hand, fingers, arm, jewelry, ring, sleeve, leather sofa, couch, furniture, blanket, room, clutter, text, watermark, logo, frame, blurry, deformed, extra limbs, " +
   "extra ears, extra legs, bad anatomy, mutated paws, long fur, fluffy fur, cartoon, illustration, oversaturated, harsh light";
 
 // crop = [x, y, w, h] in the 1200×1600 source, chosen to match the target aspect ratio.
@@ -38,22 +39,26 @@ export const ASSETS = {
   pechi: {
     source: photo("10"), crop: [60, 190, 1140, 780], width: 1216, height: 832, backdrop: 0xf6e6d2,
     prompt: `studio portrait of ${PECHI}, resting calmly and looking down to the side, plain warm cream backdrop, ${STYLE}`,
-    refs: [[photo("10"), 690, 200, 420, 640], [photo("1142424"), 500, 560, 440, 480], [photo("09"), 260, 180, 440, 480]],
-    denoise: 0.5, ipWeight: 0.6, seed: 11,
+    // No refs with people in them: IPAdapter copies whatever it sees (a hand showed up once).
+    refs: [[photo("10"), 690, 200, 420, 640], [photo("1142424"), 500, 560, 440, 480], [photo("1133333"), 60, 390, 400, 420]],
+    erase: [[1000, 330, 216, 502], [905, 680, 311, 152]],
+    denoise: 0.78, ipWeight: 0.8, seed: 11,
   },
   bella: {
     source: photo("1133"), crop: [0, 420, 1200, 822], width: 1216, height: 832, backdrop: 0xf8e1de,
     prompt: `studio portrait of ${BELLA}, lying down with one paw stretched forward, looking at the camera, plain soft blush pink backdrop, ${STYLE}`,
     refs: [[photo("1133"), 390, 440, 520, 520], [photo("103"), 650, 380, 340, 330], [photo("124242424"), 230, 520, 280, 300]],
-    denoise: 0.5, ipWeight: 0.6, seed: 12,
+    erase: [[895, 140, 321, 205], [800, 195, 95, 150], [1120, 325, 96, 45]],
+    denoise: 0.78, ipWeight: 0.8, seed: 12,
   },
   hero: {
     source: photo("124242424"), crop: [0, 280, 1200, 884], width: 1216, height: 896, backdrop: 0xeef0e6,
     prompt:
       `(exactly two dogs:1.3) sitting side by side, on the left ${BELLA}, on the right a taller ${PECHI}, ` +
-      `both looking content, plain pale sage and cream backdrop, ${STYLE}`,
+      `both looking content, sitting together on a soft cream linen cushion with a soft contact shadow, plain pale sage backdrop, ${STYLE}`,
     refs: [[photo("124242424"), 0, 280, 1200, 884]],
-    denoise: 0.45, ipWeight: 0.35, seed: 13,
+    erase: [[0, 623, 458, 273], [735, 0, 150, 135], [645, 0, 90, 26], [885, 0, 40, 92], [0, 540, 145, 85], [455, 800, 32, 96]],
+    denoise: 0.8, ipWeight: 0.6, seed: 13,
   },
 };
 
@@ -88,18 +93,34 @@ async function buildGraph(name, a) {
   const cropOf = async (file, [x, y, w, h]) =>
     node("ImageCrop", { image: [node("LoadImage", { image: await upload(file) }), 0], x, y, width: w, height: h });
 
-  // 1. Subject: crop → resize → cut out → composite onto the backdrop colour.
+  // Background removal + hard threshold (drops half-confident sofa pixels), placed on a flat backdrop colour.
+  // `erase` boxes force sofa the dog is touching (which RMBG keeps as "subject") back to backdrop.
+  const cutout = (image, width, height, erase = []) => {
+    const cut = node("easy imageRemBg", { images: [image, 0], rem_mode: "RMBG-1.4", image_output: "Hide", save_prefix: "pela_cut" });
+    let mask = node("ThresholdMask", { mask: [cut, 1], value: Number(process.env.MASK_T ?? a.maskThreshold ?? 0.5) });
+    for (const [x, y, w, h] of erase) {
+      const box = node("SolidMask", { value: 1, width: w, height: h });
+      mask = node("MaskComposite", { destination: [mask, 0], source: [box, 0], x, y, operation: "subtract" });
+    }
+    const backdrop = node("EmptyImage", { width, height, batch_size: 1, color: a.backdrop });
+    return node("ImageCompositeMasked", { destination: [backdrop, 0], source: [image, 0], x: 0, y: 0, resize_source: false, mask: [mask, 0] });
+  };
+
+  // 1. Subject: crop → resize → cut out onto the backdrop.
   const crop = await cropOf(a.source, a.crop);
   const sized = node("ImageScale", { image: [crop, 0], upscale_method: "lanczos", width: a.width, height: a.height, crop: "center" });
-  const cut = node("easy imageRemBg", { images: [sized, 0], rem_mode: "RMBG-1.4", image_output: "Hide", save_prefix: "pela_cut" });
-  const backdrop = node("EmptyImage", { width: a.width, height: a.height, batch_size: 1, color: a.backdrop });
-  const plate = node("ImageCompositeMasked", { destination: [backdrop, 0], source: [sized, 0], x: 0, y: 0, resize_source: false, mask: [cut, 1] });
+  const plate = cutout(sized, a.width, a.height, a.erase);
+  if (process.env.DEBUG_PLATE) {
+    node("SaveImage", { images: [plate, 0], filename_prefix: `pela_plate_${name}` });
+    return g;
+  }
 
-  // 2. Identity: IPAdapter Plus on face crops of the same dog.
+  // 2. Identity: IPAdapter Plus on cut-out crops of the same dog (cut out so no sofa leaks into the style).
   const ckpt = node("CheckpointLoaderSimple", { ckpt_name: CKPT });
   let refs;
   for (const [file, ...box] of a.refs) {
-    const prepped = node("PrepImageForClipVision", { image: [await cropOf(file, box), 0], interpolation: "LANCZOS", crop_position: "center", sharpening: 0 });
+    const ref = cutout(await cropOf(file, box), box[2], box[3]);
+    const prepped = node("PrepImageForClipVision", { image: [ref, 0], interpolation: "LANCZOS", crop_position: "center", sharpening: 0 });
     refs = refs ? node("ImageBatch", { image1: [refs, 0], image2: [prepped, 0] }) : prepped;
   }
   const model = node("IPAdapterAdvanced", {
@@ -107,7 +128,7 @@ async function buildGraph(name, a) {
     ipadapter: [node("IPAdapterModelLoader", { ipadapter_file: "ip-adapter-plus_sdxl_vit-h.safetensors" }), 0],
     clip_vision: [node("CLIPVisionLoader", { clip_name: "CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors" }), 0],
     image: [refs, 0],
-    weight: a.ipWeight, weight_type: "linear", combine_embeds: "average", start_at: 0, end_at: 1, embeds_scaling: "V only",
+    weight: Number(process.env.IP_WEIGHT ?? a.ipWeight), weight_type: "linear", combine_embeds: "average", start_at: 0, end_at: 1, embeds_scaling: "V only",
   });
 
   // 3. Refine: img2img over the composite.
@@ -116,7 +137,7 @@ async function buildGraph(name, a) {
     positive: [node("CLIPTextEncode", { text: a.prompt, clip: [ckpt, 1] }), 0],
     negative: [node("CLIPTextEncode", { text: NEGATIVE, clip: [ckpt, 1] }), 0],
     latent_image: [node("VAEEncode", { pixels: [plate, 0], vae: [ckpt, 2] }), 0],
-    seed: Number(process.env.SEED ?? a.seed), steps: 34, cfg: 5, sampler_name: "dpmpp_2m", scheduler: "karras", denoise: a.denoise,
+    seed: Number(process.env.SEED ?? a.seed), steps: 34, cfg: 5, sampler_name: "dpmpp_2m", scheduler: "karras", denoise: Number(process.env.DENOISE ?? a.denoise),
   });
   node("SaveImage", { images: [node("VAEDecode", { samples: [sampled, 0], vae: [ckpt, 2] }), 0], filename_prefix: `pela_photo_${name}` });
   return g;
@@ -145,7 +166,7 @@ async function render(name) {
     if (image) {
       const qs = new URLSearchParams({ filename: image.filename, subfolder: image.subfolder, type: image.type });
       mkdirSync(OUT, { recursive: true });
-      const dest = join(OUT, `${name}.png`);
+      const dest = process.env.DEBUG_PLATE ? join(tmpdir(), `pela_${name}_plate.png`) : join(OUT, `${name}.png`);
       writeFileSync(dest, Buffer.from(await (await comfy(`/view?${qs}`)).arrayBuffer()));
       return dest;
     }

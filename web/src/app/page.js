@@ -66,7 +66,7 @@ export default function Home() {
         <div className="grid gap-6 md:grid-cols-2">
           {[
             { name: "pechi", title: "Pechi", text: "Belgian Malinois. Endless energy, perfect recall (most days), and a training log longer than your arm." },
-            { name: "bella", title: "Bella", text: "Mixed breed, all heart. Snack connoisseur, nap champion, never misses a vet visit." },
+            { name: "bella", title: "Bella", text: "Rescued stray, all heart. Small, brave, snack connoisseur, and never far from Pechi's side." },
           ].map((dog, i) => (
             <motion.article
               key={dog.name}

@@ -9,7 +9,30 @@ Four images, all saved to `web/public/images/<name>.png`. The app uses each PNG 
 | `bella` | 1216×832 | Landing, every other pet |
 | `logo` | 1024×1024 | Nav + favicon (shown at 36px, so keep it bold and simple) |
 
-## Fastest path (automated)
+## From the real photos (current site images)
+
+`hero`, `pechi` and `bella` on the site are generated **from photos of the real Pechi and Bella**, not just text, so the dogs actually look like them:
+
+```powershell
+node assets\comfyui\from-photos.mjs                 # pechi, bella, hero
+node assets\comfyui\from-photos.mjs hero            # one
+$env:SEED=21; node assets\comfyui\from-photos.mjs hero   # another variation
+$env:DEBUG_PLATE=1; node assets\comfyui\from-photos.mjs   # only the cut-out plates (to %TEMP%), for checking masks
+```
+
+Per image, all in one ComfyUI graph:
+1. **Crop + resize** the photo to the target aspect ratio.
+2. **Cut out** the dog with RMBG-1.4 (`easy imageRemBg`), apply `ThresholdMask` at 0.5, and subtract per-image `erase` boxes for sofa the dog is touching. Then composite onto the page's backdrop colour (cream, blush or sage).
+3. **IPAdapter Plus (SDXL, ViT-H)**, fed with *cut-out* close-ups of the same dog from 2–3 other photos, carries the identity: markings, mask, ears.
+4. **SDXL img2img** (Juggernaut XL) at denoise ~0.8 redraws anatomy, fur and studio lighting, while the plate keeps pose and colours.
+
+What we learned tuning it:
+- Denoise 0.5 keeps every cut-out flaw (sticker look, box edges). 0.8 with strong IPAdapter keeps likeness *and* looks like a real photo.
+- IPAdapter copies anything in its references, including sofa, window and once a human hand. Cut out the references too, and don't use photos with people.
+- RMBG keeps furniture the dog is touching. Erase boxes plus the high-denoise pass clean it up.
+- Needs `models/rembg/RMBG-1.4.pth`. If ComfyUI's auto-download stalls, fetch `https://huggingface.co/briaai/RMBG-1.4/resolve/main/model.pth` with curl into that path.
+
+## Text-only path (no photos)
 
 With ComfyUI running on `127.0.0.1:8188`:
 
