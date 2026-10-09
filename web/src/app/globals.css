@@ -1,49 +1,202 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-@theme {
-  --font-display: var(--font-fraunces), Georgia, serif;
-  --font-sans: var(--font-inter), system-ui, sans-serif;
-  --color-cream: #fbf7f1;
-  --color-ink: #2b2420;
-  --color-muted: #7a6e66;
-  --color-line: #ece3d8;
-  --color-fawn: #c8873a;
-  --color-sage: #6f8f6a;
-  --color-blush: #d07b72;
+/* ── Tokens (see design-system/pela/MASTER.md) ───────────────────────────── */
+:root {
+  --radius: 22px;
+  --background: #f4eee3; /* paper */
+  --foreground: #1c211e; /* ink */
+  --card: #fbf7ef;
+  --card-foreground: #1c211e;
+  --popover: #fbf7ef;
+  --popover-foreground: #1c211e;
+  --primary: #c2441f; /* persimmon: the one accent */
+  --primary-foreground: #fff8ef;
+  --primary-shadow: #8a2e12;
+  --primary-ink: #a93a19; /* accent as small text */
+  --secondary: #203329; /* moss */
+  --secondary-foreground: #f4eee3;
+  --muted: #eae2d3;
+  --muted-foreground: #5c584f;
+  --accent: #f3d8c8;
+  --accent-foreground: #1c211e;
+  --destructive: #b3261e;
+  --border: #dcd2bf;
+  --input: #dcd2bf;
+  --ring: #c2441f;
+  /* stamp inks: care-type semantics only */
+  --ink-teal: #2b6468;
+  --ink-fawn: #8e5a2b;
+  --ink-sage: #3e6b4f;
+  --ink-rose: #9e4e44;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-press: cubic-bezier(0.23, 1, 0.32, 1);
 }
-
 /* Accent follows the user's off-chain preference (profile.accent). */
+:root[data-accent="sage"] {
+  --primary: #3e6b4f;
+  --primary-shadow: #24412f;
+  --primary-ink: #355c44;
+  --ring: #3e6b4f;
+  --accent: #dce6d8;
+}
+:root[data-accent="blush"] {
+  --primary: #b4534a;
+  --primary-shadow: #7c352e;
+  --primary-ink: #9e4e44;
+  --ring: #b4534a;
+  --accent: #f2d6d0;
+}
+
 @theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-ink: var(--primary-ink);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
-  --color-accent-soft: var(--accent-soft);
-}
-:root { --accent: #c8873a; --accent-soft: #f6e6d2; }
-:root[data-accent="sage"] { --accent: #6f8f6a; --accent-soft: #e4ece2; }
-:root[data-accent="blush"] { --accent: #d07b72; --accent-soft: #f8e1de; }
-
-body {
-  background:
-    radial-gradient(60rem 30rem at 85% -10%, var(--accent-soft), transparent 70%),
-    var(--color-cream);
-  background-attachment: fixed;
-  color: var(--color-ink);
-}
-
-@layer components {
-  .card {
-    @apply rounded-3xl border border-line bg-white/75 p-6 backdrop-blur;
-    box-shadow: 0 1px 0 rgb(0 0 0 / 0.02), 0 18px 40px -24px rgb(43 36 32 / 0.25);
-  }
-  .input {
-    @apply w-full rounded-xl border border-line bg-white/80 px-3.5 py-2.5 text-sm outline-none transition;
-  }
-  .input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 4px var(--accent-soft);
-  }
-  .label {
-    @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted;
-  }
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-moss: var(--secondary);
+  --color-ink-teal: var(--ink-teal);
+  --color-ink-fawn: var(--ink-fawn);
+  --color-ink-sage: var(--ink-sage);
+  --color-ink-rose: var(--ink-rose);
+  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument), Georgia, serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 26px;
 }
 
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* ── Base ─────────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    background: var(--background);
+    -webkit-text-size-adjust: 100%;
+    overflow-x: clip;
+  }
+  /* Grid items default to min-width:auto, so one nowrap line (the passport MRZ) can widen a
+     single-column grid past the phone screen. Let every grid child shrink instead. */
+  .grid > * {
+    min-width: 0;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-optical-sizing: auto;
+    overflow-x: clip;
+  }
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+  button:not(:disabled),
+  [role="button"],
+  [role="tab"],
+  [role="radio"],
+  a[href] {
+    cursor: pointer;
+  }
+}
+
+/* Paper grain over everything: static SVG noise, never intercepts input. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.07;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .1 0 0 0 0 .08 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Utilities ────────────────────────────────────────────────────────── */
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+}
+@utility serif-accent {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+@utility mono-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+@utility paper-grain {
+  background-image: radial-gradient(rgb(28 33 30 / 0.035) 1px, transparent 1px);
+  background-size: 5px 5px;
+}
+/* Ticket/passport perforation along the top edge. */
+@utility perforated {
+  -webkit-mask: radial-gradient(circle 5px at 50% 0, #0000 98%, #000) 0 0 / 18px 100% repeat-x;
+  mask: radial-gradient(circle 5px at 50% 0, #0000 98%, #000) 0 0 / 18px 100% repeat-x;
+}
+@utility ruled {
+  background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgb(28 33 30 / 0.07) 31px 32px);
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@utility animate-marquee {
+  animation: marquee 48s linear infinite;
+}
+
+/* Lenis smooth scroll (from the local design repository's lenis package). */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

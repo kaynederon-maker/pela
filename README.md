@@ -35,6 +35,15 @@ Pela/
 └─ tools/make-installer.mjs      builds install-pela.ps1 (self-extracting copy of the project)
 ```
 
+## Design
+
+The UI is built around a pet passport: an ID page with a photo and machine-readable line, and pages that fill with ink stamps. The full system (tokens, type, motion and component rules) is in [`design-system/pela/MASTER.md`](design-system/pela/MASTER.md).
+
+- **Components:** shadcn/ui v4 (Button, Input, Dialog, Tabs, Select, Tooltip, Badge, Sonner), restyled in `web/src/components/ui/`.
+- **Motion:** Framer Motion, Lenis smooth scroll, and React Bits pieces (TiltedCard, Magnet, ClickSpark, CircularText, CountUp) adapted in `web/src/components/motion/`. Everything respects `prefers-reduced-motion` and turns off pointer effects on touch screens.
+- **Signature pieces:** `web/src/components/passport/` (passport card, ink stamps, doodles, polaroids).
+- **Type:** Bricolage Grotesque, Instrument Serif (italic accents), JetBrains Mono.
+
 ## Roles
 
 | Role | On-chain role | Can do |

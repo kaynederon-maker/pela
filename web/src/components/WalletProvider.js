@@ -1,13 +1,15 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { MotionConfig } from "framer-motion";
+import { toast } from "sonner";
 import { BaseError, ContractFunctionRevertedError, createWalletClient, custom, getAddress } from "viem";
 import { createSiweMessage } from "viem/siwe";
 import { RPC_URL, chain, getRoles, pelaContract, publicClient } from "@/lib/chain";
 import { api } from "@/lib/client-api";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const NO_ROLES = { admin: false, editor: false, viewer: false };
-const TOAST_MS = 4500;
 
 const FRIENDLY_ERRORS = {
   AccessControlUnauthorizedAccount: "Your wallet doesn't have the role for that.",
@@ -55,12 +57,11 @@ export function WalletProvider({ children }) {
   const [roles, setRoles] = useState(NO_ROLES);
   const [profile, setProfile] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [toasts, setToasts] = useState([]);
 
   const notify = useCallback((text, tone = "info") => {
-    const id = crypto.randomUUID();
-    setToasts((all) => [...all, { id, text, tone }]);
-    setTimeout(() => setToasts((all) => all.filter((t) => t.id !== id)), TOAST_MS);
+    if (tone === "success") toast.success(text);
+    else if (tone === "error") toast.error(text);
+    else toast(text);
   }, []);
 
   const loadMe = useCallback(async () => {
@@ -121,7 +122,7 @@ export function WalletProvider({ children }) {
       const signature = await wallet.signMessage({ account, message });
       await api("/api/auth/verify", { method: "POST", body: { message, signature } });
       await loadMe();
-      notify("Welcome to Pela 🐾", "success");
+      notify("Welcome to Pela. Your passport is open.", "success");
     } catch (err) {
       notify(errorText(err), "error");
     } finally {
@@ -142,17 +143,19 @@ export function WalletProvider({ children }) {
         notify("Connect your wallet first.", "error");
         return null;
       }
+      // One toast that follows the transaction from wallet prompt to block.
+      const id = toast.loading("Confirm in your wallet…");
       try {
         const { request } = await publicClient.simulateContract({ ...pelaContract, functionName, args, account: address });
         const wallet = createWalletClient({ account: address, chain, transport: custom(window.ethereum) });
         const hash = await wallet.writeContract(request);
-        notify("Transaction sent. Waiting for the block…");
+        toast.loading("Writing to the chain…", { id, description: `${hash.slice(0, 10)}…${hash.slice(-6)}` });
         const receipt = await publicClient.waitForTransactionReceipt({ hash });
         if (receipt.status !== "success") throw new Error("Transaction reverted");
-        if (successText) notify(successText, "success");
+        toast.success(successText ?? "Done", { id, description: `Block ${receipt.blockNumber}` });
         return receipt;
       } catch (err) {
-        notify(errorText(err), "error");
+        toast.error(errorText(err), { id, description: undefined });
         return null;
       }
     },
@@ -169,37 +172,9 @@ export function WalletProvider({ children }) {
   return (
     <MotionConfig reducedMotion="user">
       <WalletContext.Provider value={value}>
-        {children}
-        <Toasts toasts={toasts} />
+        <TooltipProvider>{children}</TooltipProvider>
+        <Toaster />
       </WalletContext.Provider>
     </MotionConfig>
-  );
-}
-
-const TONES = {
-  info: "bg-ink text-cream",
-  success: "bg-accent text-white",
-  error: "bg-red-600 text-white",
-};
-
-function Toasts({ toasts }) {
-  return (
-    <div aria-live="polite" className="pointer-events-none fixed bottom-5 right-5 z-50 flex w-[min(22rem,calc(100vw-2.5rem))] flex-col gap-2">
-      <AnimatePresence initial={false}>
-        {toasts.map((t) => (
-          <motion.div
-            key={t.id}
-            layout
-            initial={{ opacity: 0, y: 16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 40 }}
-            transition={{ type: "spring", bounce: 0.3, duration: 0.45 }}
-            className={`pointer-events-auto rounded-2xl px-4 py-3 text-sm shadow-lg ${TONES[t.tone]}`}
-          >
-            {t.text}
-          </motion.div>
-        ))}
-      </AnimatePresence>
-    </div>
   );
 }

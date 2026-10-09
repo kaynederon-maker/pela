@@ -14,15 +14,6 @@ export const ROLES = {
   viewer: keccak256(toHex("VIEWER_ROLE")),
 };
 
-export const CARE_KINDS = [
-  { label: "Vaccination", emoji: "💉" },
-  { label: "Meal", emoji: "🍖" },
-  { label: "Training", emoji: "🎾" },
-  { label: "Checkup", emoji: "🩺" },
-  { label: "Grooming", emoji: "🛁" },
-  { label: "Other", emoji: "🐾" },
-];
-
 export const read = (functionName, args = []) =>
   publicClient.readContract({ ...pelaContract, functionName, args });
 
