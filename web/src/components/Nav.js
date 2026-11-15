@@ -3,9 +3,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { motion, useMotionValueEvent, useScroll } from "framer-motion";
-import { Loader2, LogOut, PawPrint, Wallet } from "lucide-react";
+import { Loader2, LogOut, Menu, PawPrint, Wallet } from "lucide-react";
 import { useWallet } from "./WalletProvider";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ClickSpark } from "@/components/motion";
 import { short } from "@/components/pela";
@@ -15,6 +16,47 @@ const LINKS = [
   { href: "/dashboard", label: "Pack" },
   { href: "/profile", label: "Profile" },
 ];
+
+// Chapters of the landing page, in reading order.
+const CHAPTERS = [
+  { href: "/#top", title: "A passport for every good dog" },
+  { href: "/#story", title: "How a record is born" },
+  { href: "/#roles", title: "Three keys, one record" },
+  { href: "/#founders", title: "Pechi & Bella" },
+  { href: "/#ledger", title: "The ledger so far" },
+];
+
+function Contents() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-1.5 px-2.5 sm:px-3">
+          <span className="hidden sm:inline">Contents</span>
+          <Menu />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <p className="mono-label text-primary-ink">Pela</p>
+          <DialogTitle>Contents</DialogTitle>
+          <DialogDescription className="sr-only">Jump to a part of the Pela story.</DialogDescription>
+        </DialogHeader>
+        <ol className="grid">
+          {CHAPTERS.map((c, i) => (
+            <li key={c.href} className="border-t border-dashed border-border first:border-t-0">
+              <DialogClose asChild>
+                <Link href={c.href} className="group flex items-baseline gap-4 py-3.5 text-[17px] font-semibold">
+                  <span className="font-mono text-sm text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="underline decoration-transparent decoration-dashed underline-offset-[6px] transition-colors group-hover:decoration-foreground/50">{c.title}</span>
+                </Link>
+              </DialogClose>
+            </li>
+          ))}
+        </ol>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export function Nav() {
   const pathname = usePathname();
@@ -31,7 +73,7 @@ export function Nav() {
         className={cn(
           "mx-auto flex h-16 max-w-[1200px] items-center gap-2 rounded-full border px-2.5 transition-[max-width,background-color,border-color,box-shadow] duration-500 ease-[var(--ease-out)] sm:gap-4",
           compact
-            ? "max-w-[920px] border-border bg-card/85 shadow-[0_2px_0_0_rgb(28_33_30/0.05),0_16px_40px_-24px_rgb(28_33_30/0.35)] backdrop-blur-md"
+            ? "max-w-[920px] border-border bg-card/85 shadow-[0_2px_0_0_rgb(31_20_11/0.05),0_16px_40px_-24px_rgb(31_20_11/0.35)] backdrop-blur-md"
             : "border-transparent bg-transparent",
         )}
       >
@@ -51,20 +93,22 @@ export function Nav() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex h-10 items-center rounded-full px-3.5 text-[15px] font-semibold transition-colors sm:px-4",
-                  active ? "text-background" : "text-foreground/75 hover:text-foreground",
+                  "relative flex h-10 items-center px-3 text-[15px] font-semibold transition-colors sm:px-3.5",
+                  active ? "text-foreground" : "text-foreground/75 hover:text-foreground",
                 )}
               >
+                {/* dashed underline like a fold line; the current page gets a solid one that slides between links */}
+                <span className={cn("relative underline decoration-foreground/45 decoration-dashed decoration-1 underline-offset-[7px]", active && "no-underline")}>{label}</span>
                 {active && (
-                  <motion.span layoutId="nav-thumb" className="absolute inset-0 rounded-full bg-foreground" transition={{ type: "spring", bounce: 0.2, duration: 0.5 }} />
+                  <motion.span layoutId="nav-thumb" className="absolute inset-x-3 bottom-[7px] h-[2px] rounded-full bg-foreground sm:inset-x-3.5" transition={{ type: "spring", bounce: 0.2, duration: 0.5 }} />
                 )}
-                <span className="relative">{label}</span>
               </Link>
             );
           })}
         </div>
 
         <div className="ml-auto flex items-center gap-1.5">
+          <Contents />
           {signedIn ? (
             <>
               <Link

@@ -1,21 +1,22 @@
 "use client";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { isAddress } from "viem";
-import { ArrowLeft, BookOpen, KeyRound, Loader2, Pencil, Settings2, Stamp as StampIcon, Trash2, UserMinus, UserPlus } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, KeyRound, Loader2, Pencil, Settings2, Stamp as StampIcon, Trash2, UserMinus, UserPlus } from "lucide-react";
 import { useWallet } from "@/components/WalletProvider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Field, Label } from "@/components/ui/fields";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ConfirmDialog, Empty, Gate, Loading, Paper, fmtDate, petArt, short } from "@/components/pela";
 import { KINDS, PassportCard, Stamp } from "@/components/passport";
 import { EASE_OUT, Tilt } from "@/components/motion";
-import { loadLogs, read } from "@/lib/chain";
+import { loadLogs, loadPets, read, visiblePetIds } from "@/lib/chain";
 import { api } from "@/lib/client-api";
 import { cn } from "@/lib/utils";
 
@@ -80,9 +81,12 @@ function Pet() {
 
   return (
     <>
-      <Link href="/dashboard" className="group mb-8 inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground">
-        <ArrowLeft className="size-4 transition-transform duration-300 group-hover:-translate-x-1" /> Your pack
-      </Link>
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <Link href="/dashboard" className="group inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground">
+          <ArrowLeft className="size-4 transition-transform duration-300 group-hover:-translate-x-1" /> Your pack
+        </Link>
+        <PassportPager id={Number(id)} />
+      </div>
 
       <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,430px)_1fr] lg:gap-14">
         {/* Left page: the ID */}
@@ -106,7 +110,8 @@ function Pet() {
 
         {/* Right page: stamps + settings */}
         <section className="min-w-0">
-          <Tabs value={tab} onValueChange={setTab}>
+          {/* Retiring the pet removes the Settings tab, so fall back to the stamps instead of an empty panel. */}
+          <Tabs value={canManage ? tab : "stamps"} onValueChange={setTab}>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <TabsList>
                 <TabsTrigger value="stamps">
@@ -136,12 +141,111 @@ function Pet() {
   );
 }
 
+/* ── Passport pager: flip to the previous/next passport like pages in a book ── */
+const isTyping = (el) => el?.closest?.("input, textarea, select, [contenteditable=true]");
+
+function PassportPager({ id }) {
+  const router = useRouter();
+  const { address, roles } = useWallet();
+  const [pets, setPets] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    // Loads every visible pet's name for the jump menu. Fine for a pack; for hundreds, page it.
+    visiblePetIds(address, roles)
+      .then(({ ids }) => loadPets(ids))
+      .then((list) => alive && setPets(list))
+      .catch(() => alive && setPets([]));
+    return () => {
+      alive = false;
+    };
+  }, [address, roles]);
+
+  const index = pets?.findIndex((p) => p.id === id) ?? -1;
+  const prev = index > 0 ? pets[index - 1] : null;
+  const next = index >= 0 && index < pets.length - 1 ? pets[index + 1] : null;
+
+  useEffect(() => {
+    const onKey = (e) => {
+      // Leave arrow keys alone while typing or while a dialog has the page locked.
+      if (e.altKey || e.ctrlKey || e.metaKey || isTyping(e.target) || document.body.hasAttribute("data-scroll-locked")) return;
+      if (e.key === "ArrowLeft" && prev) router.push(`/pets/${prev.id}`);
+      if (e.key === "ArrowRight" && next) router.push(`/pets/${next.id}`);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [prev, next, router]);
+
+  if (!pets || index < 0 || pets.length < 2) return null;
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const step = (pet, dir) => {
+    const Icon = dir === "prev" ? ChevronLeft : ChevronRight;
+    const label = dir === "prev" ? "Previous passport" : "Next passport";
+    return pet ? (
+      <Button asChild variant="ghost" size="icon" aria-label={`${label}: ${pet.name}`}>
+        <Link href={`/pets/${pet.id}`}>
+          <Icon />
+        </Link>
+      </Button>
+    ) : (
+      <Button variant="ghost" size="icon" disabled aria-label={label}>
+        <Icon />
+      </Button>
+    );
+  };
+
+  return (
+    <nav aria-label="Passports" className="flex items-center gap-1 rounded-full border border-border bg-card/70 p-1">
+      {step(prev, "prev")}
+      <Select value={String(id)} onValueChange={(v) => router.push(`/pets/${v}`)}>
+        <SelectTrigger aria-label="Jump to a passport" className="h-10 w-auto min-w-44 border-0 bg-transparent font-mono text-[13px] shadow-none">
+          <SelectValue>
+            <span className="serif-accent mr-1.5 text-[15px] text-muted-foreground">Passport</span>
+            {pad(index + 1)} / {pad(pets.length)}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {pets.map((p, i) => (
+            <SelectItem key={p.id} value={String(p.id)}>
+              {pad(i + 1)} · {p.name}
+              {!p.active && " (retired)"}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {step(next, "next")}
+    </nav>
+  );
+}
+
 /* ── Stamp book ───────────────────────────────────────────────────────── */
+const STAMPS_PER_PAGE = 6;
+const pageTurn = {
+  enter: (dir) => ({ opacity: 0, x: 28 * dir, rotate: 0.6 * dir }),
+  center: { opacity: 1, x: 0, rotate: 0 },
+  leave: (dir) => ({ opacity: 0, x: -28 * dir, rotate: -0.6 * dir }),
+};
+
 function StampBook({ logs, names, canEditOwn, isAdmin, me, onDone, petName }) {
   const { write } = useWallet();
   const [filter, setFilter] = useState(-1);
+  const [page, setPage] = useState(0);
   const kindsPresent = useMemo(() => [...new Set(logs.map((l) => Number(l.kind)))].sort(), [logs]);
-  const shown = filter < 0 ? logs : logs.filter((l) => Number(l.kind) === filter);
+  const filtered = filter < 0 ? logs : logs.filter((l) => Number(l.kind) === filter);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / STAMPS_PER_PAGE));
+  const current = Math.min(page, pageCount - 1); // a deleted stamp can shrink the book under us
+  const shown = filtered.slice(current * STAMPS_PER_PAGE, (current + 1) * STAMPS_PER_PAGE);
+  const [turn, setTurn] = useState(1); // 1 = forward, -1 = back; decides which way the page slides
+  const turnTo = (target) => {
+    setTurn(target > current ? 1 : -1);
+    setPage(target);
+  };
+  const pickFilter = (k) => {
+    setFilter(k);
+    setTurn(1);
+    setPage(0);
+  };
 
   if (!logs.length) {
     return (
@@ -163,7 +267,7 @@ function StampBook({ logs, names, canEditOwn, isAdmin, me, onDone, petName }) {
                 key={k}
                 role="radio"
                 aria-checked={active}
-                onClick={() => setFilter(k)}
+                onClick={() => pickFilter(k)}
                 className={cn(
                   "relative flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition-colors",
                   active ? "border-foreground text-background" : "border-border bg-background text-foreground/75 hover:text-foreground",
@@ -180,7 +284,17 @@ function StampBook({ logs, names, canEditOwn, isAdmin, me, onDone, petName }) {
         </div>
       )}
 
-      <ol className="grid gap-4">
+      <AnimatePresence initial={false} mode="wait" custom={turn}>
+      <motion.ol
+        key={`${filter}:${current}`}
+        custom={turn}
+        variants={pageTurn}
+        initial="enter"
+        animate="center"
+        exit="leave"
+        transition={{ duration: 0.28, ease: EASE_OUT }}
+        className="grid gap-4"
+      >
         <AnimatePresence initial={false} mode="popLayout">
           {shown.map((log, i) => {
             const author = names[log.editor.toLowerCase()] ?? short(log.editor);
@@ -229,7 +343,23 @@ function StampBook({ logs, names, canEditOwn, isAdmin, me, onDone, petName }) {
             );
           })}
         </AnimatePresence>
-      </ol>
+      </motion.ol>
+      </AnimatePresence>
+
+      {pageCount > 1 && (
+        <div className="mt-6 flex items-center justify-between border-t border-dashed border-border pt-4">
+          <Button variant="ghost" size="sm" disabled={current === 0} onClick={() => turnTo(current - 1)}>
+            <ChevronLeft /> Earlier
+          </Button>
+          <p className="font-mono text-[13px] text-muted-foreground" aria-live="polite">
+            <span className="serif-accent mr-1.5 text-[15px]">Page</span>
+            {current + 1} / {pageCount}
+          </p>
+          <Button variant="ghost" size="sm" disabled={current === pageCount - 1} onClick={() => turnTo(current + 1)}>
+            Older <ChevronRight />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -353,7 +483,7 @@ function Settings({ petId, pet, onDone }) {
         <h3 className="display text-2xl">Passport details</h3>
         <Field label="Name" value={form.name} onChange={set("name")} required maxLength={64} />
         <Field label="Breed" value={form.breed} onChange={set("breed")} maxLength={64} />
-        <Field label="Birthday" type="date" value={form.birth} onChange={set("birth")} />
+        <Field label="Birthday" type="date" value={form.birth} onChange={set("birth")} max={new Date().toISOString().slice(0, 10)} />
         <Button type="submit" className="mt-1 w-fit" disabled={saving || !form.name.trim()}>
           {saving && <Loader2 className="animate-spin" />} Save details
         </Button>

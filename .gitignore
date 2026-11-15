@@ -10,3 +10,4 @@ web/.next/
 web/*.db
 web/next-env.d.ts
 install-pela.ps1
+web/AGENTS.md

@@ -1,14 +1,14 @@
 "use client";
 // App-level building blocks shared by every page.
 import { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotionConfig } from "framer-motion";
 import { Loader2, LockKeyhole, PawPrint, ShieldAlert, Wallet } from "lucide-react";
 import { useWallet } from "@/components/WalletProvider";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-export const ACCENT_COLORS = { fawn: "#c2441f", sage: "#3e6b4f", blush: "#b4534a" };
+export const ACCENT_COLORS = { fawn: "#47331f", sage: "#3e6b4f", blush: "#8f3f37" };
 
 export const short = (addr) => (addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : "");
 
@@ -29,7 +29,7 @@ export function Art({ name, alt, className }) {
 
 /** Raised paper surface. */
 export function Paper({ className, as: Comp = "section", ...props }) {
-  return <Comp className={cn("rounded-[22px] border border-border bg-card p-6 shadow-[0_2px_0_0_rgb(28_33_30/0.05)] sm:p-7", className)} {...props} />;
+  return <Comp className={cn("raised rounded-[22px] bg-card p-6 sm:p-7", className)} {...props} />;
 }
 
 /** Page title block: mono eyebrow, display heading (accent word in serif italic), optional lede + actions. */
@@ -49,7 +49,7 @@ export function PageHeader({ eyebrow, title, accent, lede, actions, className })
 }
 
 export function Loading({ label = "Reading the chain…", className }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   return (
     <div className={cn("flex items-center justify-center gap-3 py-20 text-muted-foreground", className)} role="status">
       <span className="flex gap-1.5 text-primary">
@@ -118,7 +118,8 @@ export function ConfirmDialog({ trigger, title, description, confirmLabel = "Con
 
 /** Renders children only for a signed-in wallet (optionally with a role). */
 export function Gate({ need, children }) {
-  const { signedIn, signIn, busy, roles } = useWallet();
+  const { ready, signedIn, signIn, busy, roles } = useWallet();
+  if (!ready) return <Loading label="Checking your papers…" />;
   if (!signedIn) {
     return (
       <div className="mx-auto grid max-w-4xl items-center gap-10 py-10 md:grid-cols-[1.1fr_0.9fr]">
@@ -136,7 +137,7 @@ export function Gate({ need, children }) {
           </Button>
         </div>
         <div className="relative mx-auto w-full max-w-sm">
-          <Art name="hero" alt="Pechi and Bella waiting at the gate" className="aspect-[4/5] w-full rounded-[26px] border border-border shadow-[0_40px_60px_-34px_rgb(28_33_30/0.55)]" />
+          <Art name="hero" alt="Pechi and Bella waiting at the gate" className="aspect-[4/5] w-full rounded-[26px] border border-border shadow-[0_40px_60px_-34px_rgb(31_20_11/0.55)]" />
           <span className="absolute -bottom-5 -left-5 grid size-20 -rotate-12 place-items-center rounded-full border-[2.5px] border-primary bg-card/90 text-primary-ink outline-[1.5px] outline-offset-[-7px] outline-primary outline-dashed">
             <LockKeyhole className="size-7" />
           </span>

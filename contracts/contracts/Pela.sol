@@ -38,6 +38,7 @@ contract Pela is AccessControl, Pausable {
 
     uint256 public petCount;
     uint256 public logCount;
+    uint256 public adminCount; // so the last admin can't walk away and lock the contract
 
     mapping(uint256 => Pet) private _pets; // ids start at 1
     mapping(uint256 => CareLog) private _logs; // ids start at 1
@@ -61,6 +62,8 @@ contract Pela is AccessControl, Pausable {
     error NotLogAuthorOrAdmin();
     error NotAnEditor(address account);
     error InvalidLength();
+    error InvalidBirthDate();
+    error LastAdmin();
 
     constructor(address admin) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
@@ -79,10 +82,11 @@ contract Pela is AccessControl, Pausable {
         _;
     }
 
+    // Owning the pet isn't enough on its own: if an admin takes away your Viewer role,
+    // you lose control of your pets too (an admin can still manage them).
     modifier onlyPetOwnerOrAdmin(uint256 petId) {
-        if (_pets[petId].owner != msg.sender && !hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
-            revert NotPetOwnerOrAdmin();
-        }
+        bool isOwner = _pets[petId].owner == msg.sender && hasRole(VIEWER_ROLE, msg.sender);
+        if (!isOwner && !hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) revert NotPetOwnerOrAdmin();
         _;
     }
 
@@ -101,6 +105,7 @@ contract Pela is AccessControl, Pausable {
     {
         _checkLen(name, MAX_NAME, true);
         _checkLen(breed, MAX_NAME, false);
+        _checkBirthDate(birthDate);
         petId = ++petCount;
         _pets[petId] = Pet(msg.sender, name, breed, birthDate, uint64(block.timestamp), true);
         _ownerPets[msg.sender].push(petId);
@@ -115,6 +120,7 @@ contract Pela is AccessControl, Pausable {
     {
         _checkLen(name, MAX_NAME, true);
         _checkLen(breed, MAX_NAME, false);
+        _checkBirthDate(birthDate);
         Pet storage p = _pets[petId];
         p.name = name;
         p.breed = breed;
@@ -206,8 +212,10 @@ contract Pela is AccessControl, Pausable {
         if (!l.active) revert LogNotFound(logId);
     }
 
-    /// Admin always; otherwise the original author, who must still be an editor assigned to the pet.
+    /// Retired pets are read-only for everyone. Otherwise: admin always, or the original
+    /// author while they're still an editor assigned to the pet.
     function _requireLogAuthority(CareLog storage l) private view {
+        if (!_pets[l.petId].active) revert PetInactive(l.petId);
         if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) return;
         if (
             l.editor != msg.sender ||
@@ -219,5 +227,21 @@ contract Pela is AccessControl, Pausable {
     function _checkLen(string calldata s, uint256 max, bool required) private pure {
         uint256 len = bytes(s).length;
         if (len > max || (required && len == 0)) revert InvalidLength();
+    }
+
+    function _checkBirthDate(uint64 birthDate) private view {
+        if (birthDate > block.timestamp) revert InvalidBirthDate();
+    }
+
+    // Track admins so the role can't drop to zero (covers revokeRole and renounceRole).
+    function _grantRole(bytes32 role, address account) internal override returns (bool granted) {
+        granted = super._grantRole(role, account);
+        if (granted && role == DEFAULT_ADMIN_ROLE) adminCount++;
+    }
+
+    function _revokeRole(bytes32 role, address account) internal override returns (bool revoked) {
+        if (role == DEFAULT_ADMIN_ROLE && adminCount == 1 && hasRole(role, account)) revert LastAdmin();
+        revoked = super._revokeRole(role, account);
+        if (revoked && role == DEFAULT_ADMIN_ROLE) adminCount--;
     }
 }

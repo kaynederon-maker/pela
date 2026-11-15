@@ -4,8 +4,10 @@
 // Every effect turns itself off for touch pointers and prefers-reduced-motion.
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { motion, useInView, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
+import { motion, useInView, useMotionValue, useReducedMotionConfig, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
+import { Pause, Play } from "lucide-react";
+import { useWallet } from "@/components/WalletProvider";
 import { cn } from "@/lib/utils";
 
 export const EASE_OUT = [0.22, 1, 0.36, 1];
@@ -24,14 +26,14 @@ export function useFinePointer() {
 }
 
 const useRichMotion = () => {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const fine = useFinePointer();
   return fine && !reduce;
 };
 
 /* ── Lenis smooth scroll ──────────────────────────────────────────────── */
 export function SmoothScroll({ children }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const pathname = usePathname();
   const lenisRef = useRef(null);
 
@@ -39,6 +41,7 @@ export function SmoothScroll({ children }) {
     if (reduce) return;
     const lenis = new Lenis({
       duration: 1.15,
+      anchors: { offset: -96 }, // smooth-scroll in-page #links, leaving room for the fixed nav
       easing: (t) => 1 - Math.pow(1 - t, 4),
       // Let dialogs, selects and anything marked data-lenis-prevent scroll natively.
       prevent: (node) => Boolean(node.closest?.("[data-slot=dialog-content],[data-slot=select-content],[data-lenis-prevent]")),
@@ -59,9 +62,10 @@ export function SmoothScroll({ children }) {
     };
   }, [reduce]);
 
-  // New route = new page: jump to the top instead of animating there.
+  // New route = new page: jump to the top instead of animating there,
+  // unless the link pointed at a section (/#roles), which the browser handles.
   useEffect(() => {
-    lenisRef.current?.scrollTo(0, { immediate: true });
+    if (!window.location.hash) lenisRef.current?.scrollTo(0, { immediate: true });
   }, [pathname]);
 
   return children;
@@ -69,7 +73,7 @@ export function SmoothScroll({ children }) {
 
 /* ── Reveal on scroll ─────────────────────────────────────────────────── */
 export function Reveal({ as = "div", delay = 0, y = 18, className, children, ...props }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const Comp = motion[as];
   return (
     <Comp
@@ -168,7 +172,7 @@ export function ClickSpark({ children, color = "var(--primary)", count = 9, radi
   const canvasRef = useRef(null);
   const sparks = useRef([]);
   const frame = useRef(0);
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const BLEED = 32; // canvas extends past the child so sparks aren't clipped
 
   const draw = useCallback(
@@ -230,7 +234,7 @@ export function ClickSpark({ children, color = "var(--primary)", count = 9, radi
 
 /* ── Rotating seal (from React Bits CircularText, as an SVG textPath) ── */
 export function CircularSeal({ text, size = 132, duration = 26, className, children }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const id = useId().replace(/:/g, "");
   return (
     <div className={cn("relative grid place-items-center", className)} style={{ width: size, height: size }}>
@@ -257,7 +261,7 @@ export function CircularSeal({ text, size = 132, duration = 26, className, child
 /* ── Count-up (from React Bits CountUp) ──────────────────────────────── */
 export function CountUp({ to, duration = 1.4, className }) {
   const ref = useRef(null);
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const inView = useInView(ref, { once: true, margin: "-10% 0px" });
   const value = useMotionValue(0);
   const spring = useSpring(value, { damping: 20 + 40 / duration, stiffness: 100 / duration });
@@ -277,5 +281,23 @@ export function CountUp({ to, duration = 1.4, className }) {
     <span ref={ref} className={cn("tabular-nums", className)}>
       0
     </span>
+  );
+}
+
+/* ── Pause motion: a manual switch on top of the OS reduced-motion setting ── */
+export function MotionToggle() {
+  const { motionPaused, toggleMotion } = useWallet();
+  const Icon = motionPaused ? Play : Pause;
+  return (
+    <button
+      type="button"
+      onClick={toggleMotion}
+      aria-pressed={motionPaused}
+      aria-label="Pause motion"
+      className="fixed right-3 bottom-3 z-40 flex h-9 items-center gap-1.5 rounded-full border border-border bg-card/90 px-3.5 font-mono text-[11px] tracking-[0.08em] text-muted-foreground uppercase backdrop-blur transition-colors hover:text-foreground sm:right-5 sm:bottom-5"
+    >
+      <Icon className="size-3" strokeWidth={2.5} />
+      <span className="hidden sm:inline">{motionPaused ? "Play motion" : "Pause motion"}</span>
+    </button>
   );
 }

@@ -19,7 +19,7 @@ function Toaster(props) {
       toastOptions={{
         classNames: {
           toast:
-            "!rounded-[18px] !border !border-border !bg-card !px-4 !py-3.5 !font-sans !text-[15px] !text-foreground !shadow-[0_2px_0_0_rgb(28_33_30/0.08),0_18px_40px_-18px_rgb(28_33_30/0.4)]",
+            "!rounded-[18px] !border !border-border !bg-card !px-4 !py-3.5 !font-sans !text-[15px] !text-foreground !shadow-[0_2px_0_0_rgb(31_20_11/0.08),0_18px_40px_-18px_rgb(31_20_11/0.4)]",
           description: "!text-muted-foreground",
         },
       }}

@@ -15,8 +15,6 @@ export async function sessionAddress() {
   return verifySession((await cookies()).get(SESSION_COOKIE)?.value, getSecret());
 }
 
-export const clientIp = (req) => req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local";
-
 /** Wraps a route handler so unexpected errors are logged server-side and never leak to clients. */
 export const handle = (fn) => async (req, ctx) => {
   try {

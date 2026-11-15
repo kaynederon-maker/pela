@@ -46,7 +46,17 @@
     },
     {
       "inputs": [],
+      "name": "InvalidBirthDate",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "InvalidLength",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "LastAdmin",
       "type": "error"
     },
     {
@@ -434,6 +444,19 @@
         }
       ],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "adminCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {

@@ -147,4 +147,50 @@ describe("Pela", () => {
       await expect(pela.connect(owner).registerPet("Bella", "", 0)).to.emit(pela, "PetRegistered");
     });
   });
+
+  describe("Edge cases", () => {
+    it("a retired pet's stamps are frozen, even for admin", async () => {
+      const { pela, admin, vet, owner } = await loadFixture(withPechi);
+      await pela.connect(owner).deactivatePet(1);
+      await expect(pela.connect(vet).updateCareLog(1, Kind.Meal, "late edit"))
+        .to.be.revertedWithCustomError(pela, "PetInactive");
+      await expect(pela.connect(admin).deleteCareLog(1))
+        .to.be.revertedWithCustomError(pela, "PetInactive");
+    });
+
+    it("an owner who lost the Viewer role can't manage their pets anymore", async () => {
+      const { pela, admin, vet, owner, VIEWER } = await loadFixture(withPechi);
+      await pela.connect(admin).revokeRole(VIEWER, owner.address);
+      await expect(pela.connect(owner).updatePet(1, "Pechi", "", 0))
+        .to.be.revertedWithCustomError(pela, "NotPetOwnerOrAdmin");
+      await expect(pela.connect(owner).setEditor(1, vet.address, false))
+        .to.be.revertedWithCustomError(pela, "NotPetOwnerOrAdmin");
+      // admin can still step in
+      await expect(pela.connect(admin).updatePet(1, "Pechi", "", 0)).to.emit(pela, "PetUpdated");
+    });
+
+    it("the last admin can't leave", async () => {
+      const { pela, admin, stranger } = await loadFixture(deployFixture);
+      const ADMIN = await pela.DEFAULT_ADMIN_ROLE();
+      expect(await pela.adminCount()).to.equal(1);
+      await expect(pela.renounceRole(ADMIN, admin.address)).to.be.revertedWithCustomError(pela, "LastAdmin");
+      await expect(pela.revokeRole(ADMIN, admin.address)).to.be.revertedWithCustomError(pela, "LastAdmin");
+
+      // with a second admin it's fine
+      await pela.grantRole(ADMIN, stranger.address);
+      expect(await pela.adminCount()).to.equal(2);
+      await pela.renounceRole(ADMIN, admin.address);
+      expect(await pela.adminCount()).to.equal(1);
+      expect(await pela.hasRole(ADMIN, admin.address)).to.equal(false);
+    });
+
+    it("rejects birthdays in the future", async () => {
+      const { pela, owner } = await loadFixture(withPechi);
+      const nextYear = BigInt(Math.floor(Date.now() / 1000) + 365 * 24 * 3600);
+      await expect(pela.connect(owner).registerPet("Bella", "", nextYear))
+        .to.be.revertedWithCustomError(pela, "InvalidBirthDate");
+      await expect(pela.connect(owner).updatePet(1, "Pechi", "", nextYear))
+        .to.be.revertedWithCustomError(pela, "InvalidBirthDate");
+    });
+  });
 });

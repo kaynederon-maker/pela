@@ -22,7 +22,11 @@ const FRIENDLY_ERRORS = {
   LogNotFound: "Care log not found.",
   InvalidLength: "Text is empty or too long.",
   EnforcedPause: "Pela is paused by an admin right now.",
+  InvalidBirthDate: "The birthday can't be in the future.",
+  LastAdmin: "You're the only admin left. Make someone else admin first.",
 };
+
+const MOTION_KEY = "pela:motion";
 
 export function errorText(err) {
   if (err instanceof BaseError) {
@@ -57,6 +61,26 @@ export function WalletProvider({ children }) {
   const [roles, setRoles] = useState(NO_ROLES);
   const [profile, setProfile] = useState(null);
   const [busy, setBusy] = useState(false);
+  // Both have to settle before we know whether someone is signed in. Without this the
+  // sign-in screen flashes on every reload.
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [walletChecked, setWalletChecked] = useState(false);
+  const [motionPaused, setMotionPaused] = useState(false);
+
+  useEffect(() => {
+    try {
+      setMotionPaused(localStorage.getItem(MOTION_KEY) === "paused");
+    } catch {} // private mode etc. Default to motion on.
+  }, []);
+
+  const toggleMotion = useCallback(() => {
+    setMotionPaused((paused) => {
+      try {
+        localStorage.setItem(MOTION_KEY, paused ? "on" : "paused");
+      } catch {}
+      return !paused;
+    });
+  }, []);
 
   const notify = useCallback((text, tone = "info") => {
     if (tone === "success") toast.success(text);
@@ -71,6 +95,8 @@ export function WalletProvider({ children }) {
       setProfile(me.profile);
     } catch {
       setSession(null);
+    } finally {
+      setSessionChecked(true);
     }
   }, []);
 
@@ -86,16 +112,34 @@ export function WalletProvider({ children }) {
   useEffect(() => { loadMe(); }, [loadMe]);
   useEffect(() => { refreshRoles(); }, [refreshRoles]);
   useEffect(() => { document.documentElement.dataset.accent = profile?.accent ?? "fawn"; }, [profile]);
+  // globals.css stops CSS loops (marquee, pulse) under this flag; MotionConfig below handles Framer.
+  useEffect(() => { document.documentElement.dataset.motion = motionPaused ? "paused" : "on"; }, [motionPaused]);
 
-  // Restore an already-authorised account silently and follow account switches.
+  // Restore an already-authorised account silently, and follow account and network switches.
   useEffect(() => {
     const eth = window.ethereum;
-    if (!eth) return;
+    if (!eth) {
+      setWalletChecked(true);
+      return;
+    }
     const onAccounts = (accounts) => setAddress(accounts[0] ? getAddress(accounts[0]) : null);
-    eth.request({ method: "eth_accounts" }).then(onAccounts).catch(() => {});
+    const onChain = (hexId) => {
+      if (Number(hexId) !== chain.id) {
+        notify(`Your wallet switched off ${chain.name}. Pela will ask to switch back next time you save something.`, "error");
+      }
+    };
+    eth
+      .request({ method: "eth_accounts" })
+      .then(onAccounts)
+      .catch(() => {})
+      .finally(() => setWalletChecked(true));
     eth.on?.("accountsChanged", onAccounts);
-    return () => eth.removeListener?.("accountsChanged", onAccounts);
-  }, []);
+    eth.on?.("chainChanged", onChain);
+    return () => {
+      eth.removeListener?.("accountsChanged", onAccounts);
+      eth.removeListener?.("chainChanged", onChain);
+    };
+  }, [notify]);
 
   const signIn = useCallback(async () => {
     const eth = window.ethereum;
@@ -146,6 +190,7 @@ export function WalletProvider({ children }) {
       // One toast that follows the transaction from wallet prompt to block.
       const id = toast.loading("Confirm in your wallet…");
       try {
+        await ensureChain(window.ethereum); // the user may have changed network since signing in
         const { request } = await publicClient.simulateContract({ ...pelaContract, functionName, args, account: address });
         const wallet = createWalletClient({ account: address, chain, transport: custom(window.ethereum) });
         const hash = await wallet.writeContract(request);
@@ -163,14 +208,15 @@ export function WalletProvider({ children }) {
   );
 
   const signedIn = Boolean(session && address && session === address.toLowerCase());
+  const ready = sessionChecked && walletChecked;
 
   const value = useMemo(
-    () => ({ address, signedIn, roles, profile, setProfile, busy, signIn, signOut, write, notify, refreshRoles }),
-    [address, signedIn, roles, profile, busy, signIn, signOut, write, notify, refreshRoles],
+    () => ({ address, signedIn, ready, roles, profile, setProfile, busy, signIn, signOut, write, notify, refreshRoles, motionPaused, toggleMotion }),
+    [address, signedIn, ready, roles, profile, busy, signIn, signOut, write, notify, refreshRoles, motionPaused, toggleMotion],
   );
 
   return (
-    <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion={motionPaused ? "always" : "user"}>
       <WalletContext.Provider value={value}>
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster />

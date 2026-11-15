@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { PawPrint } from "lucide-react";
+import { chain } from "@/lib/chain";
 
 export function SiteFooter() {
   return (
-    <footer className="relative mt-10 overflow-hidden bg-moss text-secondary-foreground">
+    <footer className="relative mt-10 overflow-hidden pressed text-secondary-foreground">
       <div className="mx-auto grid max-w-[1200px] gap-10 px-5 pt-16 pb-8 sm:px-8 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <p className="display text-3xl tracking-[-0.04em]">
-            Made for Pechi & Bella, <span className="serif-accent text-[#e9a27f]">and yours.</span>
+            Made for Pechi & Bella, <span className="serif-accent text-[#e9c9a6]">and yours.</span>
           </p>
           <p className="mt-3 max-w-sm text-secondary-foreground/70">
             Pet identities and care records live on Ethereum. Profiles stay off-chain and private.
@@ -21,7 +22,7 @@ export function SiteFooter() {
         </nav>
         <div className="grid content-start gap-2.5 text-secondary-foreground/80">
           <p className="mono-label mb-1 text-secondary-foreground/50">On-chain</p>
-          <p>Network: Ethereum · Sepolia ready</p>
+          <p>Network: {chain.name}</p>
           <p>Contract roles: Admin, Editor, Viewer</p>
         </div>
       </div>
@@ -29,7 +30,7 @@ export function SiteFooter() {
         <span className="display translate-y-[18%] text-[clamp(7rem,26vw,22rem)] leading-[0.8] tracking-[-0.07em] text-secondary-foreground/[0.07]">
           pela
         </span>
-        <PawPrint className="mb-8 size-10 text-[#e9a27f]/60" />
+        <PawPrint className="mb-8 size-10 text-[#e9c9a6]/60" />
       </div>
     </footer>
   );

@@ -5,7 +5,7 @@ import { createSiweMessage } from "viem/siwe";
 import { openRepo, validateProfile, normalizeAddress, publicProfile } from "../../src/lib/profiles.js";
 import { signSession, verifySession, SESSION_TTL_S } from "../../src/lib/session.js";
 import { verifySiweLogin } from "../../src/lib/auth.js";
-import { rateLimit } from "../../src/lib/ratelimit.js";
+import { clientIp, rateLimit } from "../../src/lib/ratelimit.js";
 
 // Well-known Hardhat test key #2 (public, never holds real funds).
 const account = privateKeyToAccount("0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a");
@@ -124,4 +124,19 @@ test("rateLimit allows up to the limit per window", () => {
   for (let i = 0; i < 3; i++) assert.equal(rateLimit("t", 3, 1000, now), true);
   assert.equal(rateLimit("t", 3, 1000, now), false);
   assert.equal(rateLimit("t", 3, 1000, now + 1000), true);
+});
+
+test("clientIp only trusts X-Forwarded-For behind a known proxy", () => {
+  const req = { headers: new Headers({ "x-forwarded-for": "203.0.113.7, 10.0.0.1" }) };
+  const before = process.env.TRUST_PROXY;
+  try {
+    delete process.env.TRUST_PROXY;
+    assert.equal(clientIp(req), "local"); // spoofed header ignored
+    process.env.TRUST_PROXY = "1";
+    assert.equal(clientIp(req), "203.0.113.7");
+    assert.equal(clientIp({ headers: new Headers() }), "local");
+  } finally {
+    if (before === undefined) delete process.env.TRUST_PROXY;
+    else process.env.TRUST_PROXY = before;
+  }
 });

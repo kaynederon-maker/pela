@@ -1,11 +1,13 @@
-import { Bricolage_Grotesque, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { Gabarito, Instrument_Sans, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import { WalletProvider } from "@/components/WalletProvider";
 import { Nav } from "@/components/Nav";
 import { SiteFooter } from "@/components/site-footer";
-import { SmoothScroll } from "@/components/motion";
+import { MotionToggle, SmoothScroll } from "@/components/motion";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage", axes: ["opsz", "wdth"] });
+// Gabarito for the pressed display type, Instrument Sans for reading, the serif only for one italic word per heading.
+const gabarito = Gabarito({ subsets: ["latin"], variable: "--font-gabarito" });
+const instrumentSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-instrument-sans" });
 const instrument = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-instrument" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
 
@@ -15,11 +17,11 @@ export const metadata = {
   icons: { icon: "/images/logo.svg" },
 };
 
-export const viewport = { themeColor: "#f4eee3" };
+export const viewport = { themeColor: "#d4b08f" };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${instrument.variable} ${jetbrains.variable}`}>
+    <html lang="en" className={`${gabarito.variable} ${instrumentSans.variable} ${instrument.variable} ${jetbrains.variable}`}>
       <body className="min-h-screen font-sans text-[16px] antialiased">
         <a
           href="#main"
@@ -34,6 +36,7 @@ export default function RootLayout({ children }) {
               {children}
             </div>
             <SiteFooter />
+            <MotionToggle />
           </SmoothScroll>
         </WalletProvider>
       </body>

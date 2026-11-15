@@ -11,7 +11,7 @@ import { api } from "@/lib/client-api";
 import { cn } from "@/lib/utils";
 
 const ACCENTS = [
-  { id: "fawn", label: "Persimmon", hint: "Pela's default" },
+  { id: "fawn", label: "Burnish", hint: "Pela's default" },
   { id: "sage", label: "Moss", hint: "Park walks" },
   { id: "blush", label: "Rosehip", hint: "Bella's nose" },
 ];
@@ -159,7 +159,7 @@ function ProfileForm() {
         {/* Live preview */}
         <aside className="lg:sticky lg:top-28">
           <p className="mono-label mb-3 text-muted-foreground">Preview: what vets see</p>
-          <motion.div layout className="relative overflow-hidden rounded-[26px] border border-border bg-card p-6 shadow-[0_30px_60px_-34px_rgb(28_33_30/0.5)]">
+          <motion.div layout className="relative overflow-hidden rounded-[26px] border border-border bg-card p-6 shadow-[0_30px_60px_-34px_rgb(31_20_11/0.5)]">
             <div className="flex items-center gap-4">
               <motion.span
                 layout

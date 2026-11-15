@@ -20,7 +20,7 @@ function TabsList({ className, ...props }) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn("inline-flex w-fit items-center gap-1 rounded-full border border-border bg-card p-1 shadow-[0_2px_0_0_rgb(28_33_30/0.06)]", className)}
+      className={cn("inline-flex w-fit items-center gap-1 rounded-full border border-border bg-card p-1 shadow-[0_2px_0_0_rgb(31_20_11/0.06)]", className)}
       {...props}
     />
   );

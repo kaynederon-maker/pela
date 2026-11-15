@@ -1,10 +1,11 @@
 "use client";
 // Pela's signature objects: the passport ID page, ink stamps, hand-drawn doodles and taped polaroids.
 import { Bath, Bone, Medal, PawPrint, Stethoscope, Syringe } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotionConfig } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Art, fmtDate, short } from "@/components/pela";
 import { EASE_OUT } from "@/components/motion";
+import { chain } from "@/lib/chain";
 
 /** Care kinds, indexed like the contract's CareKind enum. Ink colours are stamp-only semantics. */
 export const KINDS = [
@@ -22,7 +23,7 @@ const mrzText = (s) => (s || "").toUpperCase().replace(/[^A-Z0-9]+/g, "<");
 /** Machine-readable zone, padded to a fixed width like a real passport. */
 export function mrzLines({ id, name, breed, owner }) {
   const line1 = `P<PELA<${mrzText(name)}<<${mrzText(breed)}`.padEnd(44, "<").slice(0, 44);
-  const line2 = `${pad(id, 6)}<<${mrzText(owner?.slice(2, 12))}<<CHAIN<SEPOLIA`.padEnd(44, "<").slice(0, 44);
+  const line2 = `${pad(id, 6)}<<${mrzText(owner?.slice(2, 12))}<<CHAIN<${mrzText(chain.name)}`.padEnd(44, "<").slice(0, 44);
   return [line1, line2];
 }
 
@@ -32,7 +33,7 @@ export function PassportCard({ pet, id, ownerName, image, className, children, c
   return (
     <article
       className={cn(
-        "relative isolate overflow-hidden rounded-[26px] border border-[#d6cbb5] bg-card text-left shadow-[0_2px_0_0_rgb(28_33_30/0.06),0_40px_70px_-36px_rgb(28_33_30/0.5)]",
+        "relative isolate overflow-hidden rounded-[26px] border border-[#c4a283] bg-card text-left shadow-[0_2px_0_0_rgb(31_20_11/0.06),0_40px_70px_-36px_rgb(31_20_11/0.5)]",
         !pet.active && "grayscale-[0.7]",
         className,
       )}
@@ -40,7 +41,7 @@ export function PassportCard({ pet, id, ownerName, image, className, children, c
       <Guilloche />
       <header className="flex items-center justify-between bg-moss px-5 py-3 text-secondary-foreground">
         <span className="flex items-center gap-2 mono-label text-[10px] text-secondary-foreground/85">
-          <PawPrint className="size-3.5 text-[#e9a27f]" aria-hidden />
+          <PawPrint className="size-3.5 text-[#e9c9a6]" aria-hidden />
           Pela · Pet passport
         </span>
         <span className="font-mono text-[11px] tracking-[0.12em] text-secondary-foreground/70">No. {pad(id)}</span>
@@ -75,7 +76,7 @@ export function PassportCard({ pet, id, ownerName, image, className, children, c
       </div>
 
       {!compact && (
-        <footer className="border-t border-dashed border-foreground/15 bg-[#f1e9da] px-5 py-3 font-mono text-[10.5px] leading-[1.6] tracking-[0.16em] text-foreground/70 sm:text-[11.5px]">
+        <footer className="border-t border-dashed border-foreground/15 bg-[#e3cbb0] px-5 py-3 font-mono text-[10.5px] leading-[1.6] tracking-[0.16em] text-foreground/70 sm:text-[11.5px]">
           <p className="truncate">{mrz1}</p>
           <p className="truncate">{mrz2}</p>
         </footer>
@@ -118,7 +119,7 @@ const SHAPES = {
  */
 export function Stamp({ kind = 0, date, caption, rotate = -6, size = "md", land = true, delay = 0, className }) {
   const { label, Icon, ink, shape } = KINDS[kind] ?? KINDS[5];
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const dims = size === "sm" ? "min-w-[92px] text-[9px]" : "min-w-[118px] text-[10px]";
   return (
     <motion.div
@@ -147,7 +148,7 @@ export function Stamp({ kind = 0, date, caption, rotate = -6, size = "md", land 
 
 /* ── Hand-drawn doodles (draw in once when visible) ───────────────────── */
 function DrawPath({ d, delay = 0, duration = 0.9, ...props }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   return (
     <motion.path
       d={d}
@@ -182,7 +183,7 @@ export function ArrowDoodle({ className, delay = 0.2 }) {
 }
 
 export function PawTrail({ className, count = 5 }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   return (
     <div aria-hidden className={cn("flex items-end gap-5", className)}>
       {Array.from({ length: count }, (_, i) => (
@@ -203,17 +204,17 @@ export function PawTrail({ className, count = 5 }) {
 
 /* ── Taped polaroid ───────────────────────────────────────────────────── */
 export function Polaroid({ image, alt, caption, rotate = -3, tape = "left", className, children }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   return (
     <motion.figure
       style={{ rotate }}
       whileHover={reduce ? undefined : { rotate: 0, y: -6, transition: { type: "spring", stiffness: 260, damping: 20 } }}
-      className={cn("relative bg-[#fffaf1] p-3 pb-4 shadow-[0_2px_0_rgb(28_33_30/0.06),0_30px_50px_-30px_rgb(28_33_30/0.55)]", className)}
+      className={cn("relative bg-[#ecd9c3] p-3 pb-4 shadow-[0_2px_0_rgb(31_20_11/0.06),0_30px_50px_-30px_rgb(31_20_11/0.55)]", className)}
     >
       <span
         aria-hidden
         className={cn(
-          "absolute -top-3 h-7 w-24 bg-[#e9d9b8]/80 shadow-sm [clip-path:polygon(3%_0,97%_4%,100%_100%,0_96%)]",
+          "absolute -top-3 h-7 w-24 bg-[#d9bd9c]/80 shadow-sm [clip-path:polygon(3%_0,97%_4%,100%_100%,0_96%)]",
           tape === "left" ? "left-6 -rotate-6" : "right-6 rotate-6",
         )}
       />

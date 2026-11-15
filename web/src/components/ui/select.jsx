@@ -35,7 +35,7 @@ function SelectContent({ className, children, position = "popper", ...props }) {
         position={position}
         sideOffset={6}
         className={cn(
-          "relative z-50 max-h-(--radix-select-content-available-height) min-w-(--radix-select-trigger-width) origin-(--radix-select-content-transform-origin) overflow-hidden rounded-[18px] border border-border bg-card p-1.5 text-foreground shadow-[0_18px_40px_-16px_rgb(28_33_30/0.35)]",
+          "relative z-50 max-h-(--radix-select-content-available-height) min-w-(--radix-select-trigger-width) origin-(--radix-select-content-transform-origin) overflow-hidden rounded-[18px] border border-border bg-card p-1.5 text-foreground shadow-[0_18px_40px_-16px_rgb(31_20_11/0.35)]",
           "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-1 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
           className,
         )}

@@ -3,7 +3,7 @@
 // asymmetric ticket grid, scattered polaroids, stat strip, closing panel.
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useMotionValueEvent, useReducedMotionConfig, useScroll, useTransform } from "framer-motion";
 import { ArrowDown, ArrowRight, Check, FileSignature, KeyRound, PawPrint, ShieldCheck, Stethoscope, Wallet } from "lucide-react";
 import { useWallet } from "@/components/WalletProvider";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,7 @@ function PassportCta({ size = "lg", label = "Open your pet's passport" }) {
 const HEADLINE = ["Every", "good", "dog", "deserves", "a"];
 
 export function Hero() {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const word = (i) => ({
     initial: reduce ? false : { opacity: 0, y: "0.45em", rotate: 2 },
     animate: { opacity: 1, y: 0, rotate: 0 },
@@ -68,7 +68,7 @@ export function Hero() {
   });
 
   return (
-    <section className="relative grid items-center gap-14 pb-16 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10 lg:pb-24">
+    <section id="top" className="relative grid items-center gap-14 pb-16 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10 lg:pb-24">
       <div>
         <motion.p {...word(0)} className="mono-label mb-6 flex items-center gap-2 text-primary-ink">
           <span className="size-1.5 rounded-full bg-primary" /> Pet identity · Care records · On-chain
@@ -161,7 +161,7 @@ export function Ribbon() {
           const { Icon, label } = KINDS[kind];
           return (
             <p key={i} aria-hidden={i >= RIBBON.length} className="flex items-center gap-3 whitespace-nowrap">
-              <Icon className="size-5 text-[#e9a27f]" />
+              <Icon className="size-5 text-[#e9c9a6]" />
               <span className="display text-xl tracking-[-0.03em]">{dog}</span>
               <span className="mono-label text-secondary-foreground/60">{label}</span>
               <span className="serif-accent text-xl text-secondary-foreground/85">{note}</span>
@@ -184,7 +184,7 @@ const CHAPTERS = [
 export function Story() {
   const ref = useRef(null);
   const desktop = useIsDesktop();
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const live = desktop && !reduce;
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const [step, setStep] = useState(0);
@@ -242,7 +242,7 @@ export function Story() {
                 animate={{ opacity: 1, x: 0, rotate: 4 }}
                 exit={{ opacity: 0, x: 40 }}
                 transition={{ type: "spring", stiffness: 180, damping: 18 }}
-                className="absolute -top-8 -right-3 w-52 rounded-[16px] border border-border bg-card p-4 shadow-[0_20px_40px_-20px_rgb(28_33_30/0.45)] sm:-right-10"
+                className="absolute -top-8 -right-3 w-52 rounded-[16px] border border-border bg-card p-4 shadow-[0_20px_40px_-20px_rgb(31_20_11/0.45)] sm:-right-10"
               >
                 <p className="mono-label text-[9.5px] text-ink-teal">Visa · Editor</p>
                 <p className="mt-1 font-semibold">Dr. Rina, DVM</p>
@@ -265,66 +265,116 @@ export function Story() {
   );
 }
 
-/* ── 4. Role tickets ──────────────────────────────────────────────────── */
+/* ── 4. Roles: pick a number on the left, read the ticket on the right ── */
 const ROLES = [
   {
     role: "Viewer",
     who: "Pet owners",
-    span: "lg:col-span-7",
-    tone: "bg-card",
+    icon: PawPrint,
+    summary: "Issue and look after your own pets' passports.",
     can: ["Issue a passport for each pet", "Choose which vets and trainers may write", "Retire a passport without erasing its history"],
   },
-  { role: "Editor", who: "Vets & trainers", span: "lg:col-span-5", tone: "bg-accent", can: ["Stamp care for pets they're invited to", "Fix or withdraw their own stamps"] },
+  {
+    role: "Editor",
+    who: "Vets & trainers",
+    icon: Stethoscope,
+    summary: "Stamp the passports you've been invited to.",
+    can: ["Stamp care for pets they're invited to", "Fix or withdraw their own stamps"],
+  },
   {
     role: "Admin",
     who: "The Pela desk",
-    span: "lg:col-span-12",
-    tone: "bg-moss text-secondary-foreground",
+    icon: ShieldCheck,
+    summary: "Hand out keys and keep the whole thing honest.",
     can: ["Hand out and take back roles", "Pause every write if something looks wrong", "Look after user profiles"],
   },
 ];
 
 export function Roles() {
+  const [picked, setPicked] = useState(0);
+  const role = ROLES[picked];
+  const Icon = role.icon;
+
   return (
-    <section className="pt-24 pb-10 sm:pt-32 sm:pb-12">
+    <section id="roles" className="scroll-mt-24 pt-24 pb-10 sm:pt-32 sm:pb-12">
       <Reveal className="mb-12 flex flex-wrap items-end justify-between gap-6">
         <h2 className="display max-w-xl text-[clamp(2.3rem,4.6vw,3.8rem)]">
           Three keys, <span className="serif-accent text-primary-ink">one</span> record.
         </h2>
         <p className="max-w-sm text-muted-foreground">Roles live in the smart contract, so the rules hold even if this website disappears.</p>
       </Reveal>
-      <div className="grid gap-5 lg:grid-cols-12">
-        {ROLES.map((r, i) => (
-          <Reveal key={r.role} delay={i * 0.08} className={cn(r.span)}>
-            <article
-              className={cn(
-                "group relative h-full overflow-hidden rounded-[22px] p-7 transition-transform duration-300 ease-[var(--ease-out)] hover:-translate-y-1 sm:p-9",
-                "border border-border shadow-[0_2px_0_0_rgb(28_33_30/0.06)]",
-                r.tone,
-              )}
-            >
-              {/* ticket notches */}
-              <span aria-hidden className="absolute top-1/2 -left-3 size-6 -translate-y-1/2 rounded-full bg-background" />
-              <span aria-hidden className="absolute top-1/2 -right-3 size-6 -translate-y-1/2 rounded-full bg-background" />
-              <div className={cn("flex h-full gap-8", r.role === "Admin" ? "flex-col md:flex-row md:items-center md:justify-between" : "flex-col")}>
-                <div>
-                  <Badge variant="stamp" className={r.role === "Admin" ? "text-[#e9a27f]" : undefined}>
-                    {r.role}
+
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-12">
+        <Reveal>
+          <ol className="grid gap-2" role="tablist" aria-label="Roles" aria-orientation="vertical">
+            {ROLES.map((r, i) => {
+              const active = i === picked;
+              return (
+                <li key={r.role}>
+                  <button
+                    type="button"
+                    role="tab"
+                    id={`role-tab-${i}`}
+                    aria-selected={active}
+                    aria-controls="role-panel"
+                    onClick={() => setPicked(i)}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                        e.preventDefault();
+                        const nextIndex = (i + (e.key === "ArrowDown" ? 1 : ROLES.length - 1)) % ROLES.length;
+                        setPicked(nextIndex);
+                        document.getElementById(`role-tab-${nextIndex}`)?.focus();
+                      }
+                    }}
+                    tabIndex={active ? 0 : -1}
+                    className="group relative grid w-full grid-cols-[2.5rem_1fr_auto] items-start gap-x-3 rounded-[18px] px-4 py-4 text-left transition-colors"
+                  >
+                    {active && <motion.span layoutId="role-pick" className="raised absolute inset-0 rounded-[18px] bg-card" transition={{ type: "spring", bounce: 0.15, duration: 0.5 }} />}
+                    <span className={cn("relative pt-0.5 font-mono text-sm", active ? "text-primary-ink" : "text-muted-foreground")}>{String(i + 1).padStart(2, "0")}</span>
+                    <span className="relative">
+                      <span className="block text-lg font-semibold">{r.who}</span>
+                      <span className="mt-1 block text-sm text-muted-foreground">{r.summary}</span>
+                    </span>
+                    <ArrowRight className={cn("relative mt-1 size-5 transition-transform duration-300", active ? "text-foreground" : "-rotate-45 text-muted-foreground group-hover:rotate-0")} />
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </Reveal>
+
+        <Reveal delay={0.08}>
+          <div id="role-panel" role="tabpanel" aria-labelledby={`role-tab-${picked}`} className="pressed relative overflow-hidden rounded-[26px] p-7 sm:p-10">
+            {/* ticket notches */}
+            <span aria-hidden className="absolute top-1/2 -left-3 size-6 -translate-y-1/2 rounded-full bg-background" />
+            <span aria-hidden className="absolute top-1/2 -right-3 size-6 -translate-y-1/2 rounded-full bg-background" />
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={role.role}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: EASE_OUT }}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <Badge variant="stamp" className="text-kraft-light">
+                    {role.role}
                   </Badge>
-                  <h3 className="display mt-5 text-[2.1rem] tracking-[-0.04em]">{r.who}</h3>
+                  <Icon className="size-7 text-kraft-light/70" strokeWidth={1.75} />
                 </div>
-                <ul className={cn("grid gap-3", r.role === "Admin" && "md:grid-cols-3 md:gap-6")}>
-                  {r.can.map((c) => (
+                <h3 className="display emboss mt-6 text-[clamp(2rem,4vw,2.8rem)] uppercase">{role.who}</h3>
+                <ul className="mt-7 grid gap-3.5">
+                  {role.can.map((c) => (
                     <li key={c} className="flex gap-3 text-[15.5px] leading-snug">
-                      <Check className={cn("mt-0.5 size-[18px] shrink-0", r.role === "Admin" ? "text-[#e9a27f]" : "text-primary-ink")} strokeWidth={2.5} />
-                      <span className={r.role === "Admin" ? "text-secondary-foreground/85" : "text-foreground/85"}>{c}</span>
+                      <Check className="mt-0.5 size-[18px] shrink-0 text-kraft-light" strokeWidth={2.5} />
+                      <span className="text-secondary-foreground/90">{c}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
-            </article>
-          </Reveal>
-        ))}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -333,7 +383,7 @@ export function Roles() {
 /* ── 5. Founders ──────────────────────────────────────────────────────── */
 export function Founders() {
   return (
-    <section id="founders" className="relative py-16 sm:py-24">
+    <section id="founders" className="relative scroll-mt-24 py-16 sm:py-24">
       <Reveal className="text-center">
         <p className="mono-label mb-4 text-primary-ink">The founders</p>
         <h2 className="display mx-auto max-w-2xl text-[clamp(2.3rem,4.6vw,3.8rem)]">
@@ -384,7 +434,7 @@ export function Ledger({ stats }) {
     { label: "Records edited in secret", value: 0, note: "Edits and withdrawals are transactions too." },
   ];
   return (
-    <section className="py-16">
+    <section id="ledger" className="scroll-mt-24 py-16">
       <Reveal className="grid gap-px overflow-hidden rounded-[22px] border border-border bg-border sm:grid-cols-3">
         {items.map((it) => (
           <div key={it.label} className="bg-card p-7 sm:p-9">
@@ -406,12 +456,12 @@ export function Ledger({ stats }) {
 /* ── 7. Closing CTA ───────────────────────────────────────────────────── */
 export function ClosingCta() {
   return (
-    <Reveal as="section" className="relative mt-10 overflow-hidden rounded-[32px] bg-moss px-7 py-16 text-secondary-foreground sm:px-14 sm:py-20">
+    <Reveal as="section" className="relative mt-10 overflow-hidden rounded-[32px] pressed px-7 py-16 text-secondary-foreground sm:px-14 sm:py-20">
       <div aria-hidden className="absolute -top-24 -right-24 size-80 rounded-full border-[40px] border-secondary-foreground/[0.04]" />
       <div className="relative grid items-center gap-10 md:grid-cols-[1fr_auto]">
         <div>
           <h2 className="display max-w-xl text-[clamp(2.4rem,5vw,4.2rem)]">
-            Give your dog a <span className="serif-accent text-[#f0b08e]">passport.</span>
+            Give your dog a <span className="serif-accent text-[#e9c9a6]">passport.</span>
           </h2>
           <p className="mt-4 max-w-md text-secondary-foreground/75">It takes one signature to sign in and one transaction to register. Your vet does the rest.</p>
         </div>

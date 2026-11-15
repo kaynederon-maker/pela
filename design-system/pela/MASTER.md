@@ -1,66 +1,84 @@
-# Pela design system: "the pet passport"
+# Pela design system: the pet passport, on kraft board
 
-Pela records who a pet is and the care they've had, so the interface borrows from a passport: an ID page with a photo and a machine-readable zone, and pages that fill with ink stamps. Everything else stays quiet so those two objects carry the personality.
+Pela records who a pet is and the care they've had, so the interface borrows from a passport: an ID page with a photo and a machine-readable line, and a book that fills with ink stamps. The page itself is one material, kraft board. Nothing is printed on it in a second colour; everything that matters is pressed into it or sits up on top of it.
 
-Sources: shadcn/ui v4 (via MCP, restyled), UI UX Pro Max (UX rules, motion and accessibility checks; its generated orange/blue claymorphism palette was rejected as generic), the Cadence and Hero-Minimal-Motion guides and React Bits / Lenis from the local design repository.
+Two references shaped it. relevovinco.com, for the single tonal material and the embossed and debossed type. aestudio.studio/goshuin, for moving through records like the pages of a book. Components start from shadcn/ui v4 and are restyled; some motion pieces are adapted from React Bits, and smooth scrolling is Lenis.
 
-## Color
+## Colour
 
-One working accent. Stamp inks appear only on stamps and care-type chips.
+One hue, in different depths of brown. Stamp inks are the only exception, and they appear only on stamps and care-type chips.
 
-| Token | Value | Role | Contrast |
+| Token | Value | Use | Contrast |
 |---|---|---|---|
-| `--background` paper | `#F4EEE3` | page ground, warm, never white | |
-| `--foreground` ink | `#1C211E` | text | 14.1:1 |
-| `--card` | `#FBF7EF` | raised paper | |
-| `--muted-foreground` | `#5C584F` | secondary text | 6.1:1 |
-| `--primary` persimmon | `#C2441F` | CTAs, active, focus ring | 4.8:1 with cream text |
-| `--primary-ink` | `#A93A19` | persimmon used as small text | ≥4.5:1 |
-| `--moss` | `#203329` | dark chapter bands, inverse surfaces | 11.6:1 with paper |
-| `--border` | `#DCD2BF` | hairlines | |
-| stamp inks | teal `#2B6468` · fawn `#8E5A2B` · persimmon · moss `#3E6B4F` · rose `#9E4E44` · ink | care kinds | ≥4.3:1 (large/bold only) |
+| `--background` kraft | `#D4B08F` | the board | |
+| `--foreground` burnt ink | `#36261A` | body text | 7.2:1 on kraft |
+| `--card` | `#DCBD9F` | a lighter sheet laid on the board | 8.2:1 with ink |
+| `--muted-foreground` | `#4F3726` | secondary text | 5.4:1 on kraft |
+| `--primary` burnish | `#47331F` | main buttons, active states, small accent text | 5.9:1 on kraft |
+| `--secondary` | `#47331F` | pressed-in panels (footer, role ticket, closing band) | |
+| `--kraft-light` | `#E9C9A6` | text on pressed panels | 7.6:1 |
+| `--border` | `#B8916F` | hairlines | |
+| `--destructive` | `#7A1712` | delete and retire | 5.3:1 on kraft |
+| stamp inks | teal `#2B6468` · fawn `#8E5A2B` · moss `#3E6B4F` · rose `#9E4E44` · ink | care kinds | 3.2 to 3.8:1, so large or bold text only |
 
-User accent preference (profile) swaps `--primary`: fawn → persimmon, sage → `#3E6B4F`, blush → `#B4534A`.
-No purple, no cool greys, no pure black or white.
+A user's accent preference (stored in their profile) swaps the burnish for moss (`#3E6B4F`, small text `#2C4A37`) or rosehip (`#8F3F37`, small text `#6F2E28`). No pure black, no pure white, no cool greys.
 
 ## Type
 
-- **Bricolage Grotesque** (variable, optical size): headings and UI. Headings weight 650–750, tracking −0.035em, leading 0.95–1.05.
-- **Instrument Serif** italic: one or two emphasis words per heading, never body copy.
-- **JetBrains Mono**: wallet addresses, IDs, block-style labels, the passport MRZ line. Uppercase labels at 11–12px, tracking 0.12em.
-- Scale: hero `clamp(3rem, 7.5vw, 6.5rem)`, H2 `clamp(2.25rem, 4.5vw, 3.75rem)`, H3 1.375rem, body 1.0625rem/1.6, small 0.875rem.
+- Gabarito for display: headings in weight 800, uppercase, tracking −0.02em, leading 0.95. `h1` and `h2` with the `display` class are debossed automatically, or embossed when they sit on a pressed panel.
+- Instrument Sans for everything you read: body, labels, buttons.
+- Instrument Serif italic for one emphasis word per heading. It stays lowercase inside uppercase headings and never sets body copy.
+- JetBrains Mono for wallet addresses, IDs, page counters, labels and the passport's machine-readable line. Uppercase labels at 11–12px, tracking 0.12em.
+- Scale: hero `clamp(3rem, 7.4vw, 6.4rem)`, H2 `clamp(2.3rem, 4.6vw, 3.8rem)`, H3 1.375rem, body 1.0625rem/1.6, small 0.875rem.
+
+## Depth
+
+The board has three depths, all made with light from the top left.
+
+- `deboss`: text pressed into the board. A light edge below-right and a dark edge above-left.
+- `raised`: a sheet sitting on the board (cards, paper panels, outline buttons, the selected item in a list). A lit inner edge, a 1px contact line and a soft shadow underneath.
+- `pressed`: a panel pressed down into the board, dark brown with an inner shadow. Text on it is `emboss`, standing up out of it.
+
+Primary buttons are a raised dark-brown block with a hard 2px base; pressing one drops it 2px and removes the shadow. An SVG fractal-noise grain sits over the whole page at 11% (static, `pointer-events: none`), with a soft pool of light in the top right.
 
 ## Shape and space
 
-- Radius: controls 14px, cards 22px, dialogs 26px, pills full. Stamps: circles, rounded rectangles and an octagon, slightly rotated.
-- Spacing on a 4px grid; sections `clamp(5rem, 10vw, 9rem)`; content max 1200px; 20px mobile gutter.
-- Elevation is print, not glow: a 1px border plus a hard offset shadow (`0 2px 0` ink at 8–12%) on interactive paper; soft long shadows only on the passport card and dialogs.
-- Texture: an SVG fractal-noise grain over the whole page at 5% opacity (static, `pointer-events: none`).
+- Radius: controls 14px, cards 22px, dialogs 26px, pills fully round. Stamps are circles, rounded rectangles and an octagon, slightly rotated.
+- Spacing on a 4px grid; sections `clamp(5rem, 10vw, 9rem)` apart; content max 1200px; 20px gutters on phones.
+- Links in the nav have a dashed underline, like a fold line. The current page gets a solid one that slides between links.
+
+## Moving around: the book
+
+- Contents: a numbered list of the landing chapters, opened from the nav on every page.
+- Passports: the pet page has a pager (← Passport 01 / 07 ▾ →). The middle opens a list to jump to any passport, and the arrow keys flip pages unless you're typing or a dialog is open.
+- Stamp book: six stamps per page, with Earlier and Older buttons and a page counter. Pages slide in from the direction you turned.
+- Roles on the landing page: a numbered list on the left (01 owners, 02 vets and trainers, 03 the desk) picks the ticket shown on the right. Arrow keys move through the list.
 
 ## Motion
 
 | Token | Value | Use |
 |---|---|---|
-| `--ease-out` | `cubic-bezier(.22,1,.36,1)` | entrances, reveals, route changes |
+| `--ease-out` | `cubic-bezier(.22,1,.36,1)` | entrances, reveals, route changes, page turns |
 | `--ease-press` | `cubic-bezier(.23,1,.32,1)` | presses |
-| durations | 140 / 220 / 320 / 680 ms | press / hover / state / reveal |
+| durations | 140 / 220 / 280–320 / 680 ms | press / hover / state and page turn / reveal |
 
-- Lenis smooth scroll site-wide (off under reduced motion).
-- Route change: 320ms fade + 12px rise.
-- Signature moments: the passport card tilts toward the cursor with a foil glare; stamps land with an ink "thud" (scale 1.35 → 1, slight rotation, blur → sharp); doodle underlines draw in; the hero passport collects its stamps as you scroll through "How a record is born".
-- Micro: buttons press down 1px and lose their offset shadow; the primary CTA has paw-colored click sparks and a gentle magnet on pointer devices.
-- Animate only transform, opacity, filter and stroke-dashoffset. Content is readable without JS. `prefers-reduced-motion` turns off scroll-linked motion, loops, tilt, magnet and sparks and shows final states.
+- Lenis smooth scroll across the site, including in-page `#chapter` links.
+- Route change: a 320ms fade with a 12px rise.
+- Signature moments: the passport card tilts toward the cursor with a foil glare; stamps land with an ink thud (scale 1.35 → 1, a slight turn, blur to sharp); doodle underlines draw themselves in; the hero passport collects its stamps as you scroll through "How a record is born".
+- Small things: buttons press down 1–2px and lose their shadow; the main call to action throws paw-coloured sparks and pulls gently toward a mouse pointer.
+- Only transform, opacity, filter and stroke-dashoffset animate. Content is readable without JavaScript.
+- Two off switches. The OS `prefers-reduced-motion` setting, and the "Pause motion" button in the corner, which is remembered per browser. Either one stops scroll-linked motion, loops, tilt, magnet, sparks and smooth scrolling, and shows final states.
 
 ## Icons and imagery
 
-- Lucide icons (1.75px stroke), never emoji, as UI icons. Care kinds: Syringe (vaccination), Bone (meal), Medal (training), Stethoscope (checkup), Bath (grooming), PawPrint (other).
-- Photography: the real Pechi and Bella, regenerated in ComfyUI on paper-colored backdrops (`assets/comfyui/from-photos.mjs`).
-- Hand-drawn SVG doodles (squiggle underline, arrow, paw trail) in ink or persimmon, 2px round strokes.
+- Lucide icons at a 1.75px stroke; no emoji as icons. Care kinds: Syringe (vaccination), Bone (meal), Medal (training), Stethoscope (checkup), Bath (grooming), PawPrint (other).
+- Photos: the real Pechi and Bella, redrawn in ComfyUI on backdrops that match the board.
+- Hand-drawn SVG doodles (squiggle underline, arrow, paw trail) in ink, 2px round strokes.
 
-## Components (shadcn v4, restyled)
+## Components
 
-Button (primary, ink, outline, ghost, link; 44px default), Input/Textarea/Label (52px fields, mono labels above), Badge (as small stamp chips), Dialog (paper sheet, ink scrim with blur), Tabs (pill track with an ink thumb), Select, Tooltip (ink, mono), Sonner toasts (paper notes, bottom center).
+Button (primary, ink, outline, ghost, link; 44px tall by default), Input, Textarea and Label (52px fields, mono labels above), Badge (small stamp chips), Dialog (a sheet over a dark blurred backdrop), Tabs (a pill track with an ink thumb), Select, Tooltip (ink, mono), Sonner toasts (paper notes, bottom centre).
 
-## UX rules carried over from UI UX Pro Max
+## Interaction rules
 
-44×44px minimum targets, visible focus everywhere (2px persimmon ring), labels above fields with errors directly below, loading and disabled states on every action, `cursor-pointer` on clickables, no horizontal scroll from 360px up, one `h1` per route, `alt` text on every photo.
+Touch targets at least 44×44px. A visible focus ring everywhere (2px, the ring colour). Labels above fields, errors directly under them. Every action has a loading and a disabled state. Anything clickable shows a pointer. No sideways scrolling from 360px up. One `h1` per page. Every photo has `alt` text.

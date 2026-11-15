@@ -30,11 +30,23 @@ export async function allPetIds() {
   return Array.from({ length: count }, (_, i) => BigInt(i + 1));
 }
 
-// ponytail: O(petCount) scan. Index EditorAssigned events (or a subgraph) once there are thousands of pets.
+// Checks every pet one by one. Fine for a few thousand; past that, index the
+// EditorAssigned events (or use a subgraph) instead.
 export async function assignedPetIds(editor) {
   const ids = await allPetIds();
   const flags = await Promise.all(ids.map((id) => read("isAssigned", [id, editor])));
   return ids.filter((_, i) => flags[i]);
+}
+
+/** Pets this wallet can open: its own, the ones it's assigned to as an editor, and all of them for admins. */
+export async function visiblePetIds(address, roles) {
+  const [owned, assigned, all] = await Promise.all([
+    read("getPetsByOwner", [address]),
+    roles.editor ? assignedPetIds(address) : [],
+    roles.admin ? allPetIds() : [],
+  ]);
+  const ids = [...new Set([...owned, ...assigned, ...all].map(Number))].sort((a, b) => a - b);
+  return { ids, assigned: assigned.map(Number) };
 }
 
 export const loadPets = (ids) =>

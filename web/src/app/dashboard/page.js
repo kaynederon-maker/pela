@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Empty, Gate, PageHeader, petArt, short } from "@/components/pela";
 import { PassportCard } from "@/components/passport";
 import { EASE_OUT, Tilt } from "@/components/motion";
-import { allPetIds, assignedPetIds, loadPets, read } from "@/lib/chain";
+import { loadPets, visiblePetIds } from "@/lib/chain";
 
 const dateToSecs = (value) => (value ? BigInt(Math.floor(new Date(value).getTime() / 1000)) : 0n);
 
@@ -37,13 +37,8 @@ function Dashboard() {
 
   const load = useCallback(async () => {
     try {
-      const [owned, visas, all] = await Promise.all([
-        read("getPetsByOwner", [address]),
-        roles.editor ? assignedPetIds(address) : [],
-        roles.admin ? allPetIds() : [],
-      ]);
-      setAssigned(new Set(visas.map(Number)));
-      const ids = [...new Set([...owned, ...visas, ...all].map(Number))].sort((a, b) => a - b);
+      const { ids, assigned: visas } = await visiblePetIds(address, roles);
+      setAssigned(new Set(visas));
       setPets(await loadPets(ids));
     } catch {
       notify("Couldn't read your pets from the chain.", "error");
@@ -122,7 +117,7 @@ function Dashboard() {
               >
                 <Link href={`/pets/${pet.id}`} className="group block rounded-[26px] focus-visible:outline-offset-4" aria-label={`Open ${pet.name}'s passport`}>
                   <Tilt amplitude={6}>
-                    <PassportCard pet={pet} id={pet.id} image={petArt(pet)} compact className="transition-shadow duration-300 group-hover:shadow-[0_2px_0_0_rgb(28_33_30/0.06),0_40px_60px_-30px_rgb(28_33_30/0.55)]" />
+                    <PassportCard pet={pet} id={pet.id} image={petArt(pet)} compact className="transition-shadow duration-300 group-hover:shadow-[0_2px_0_0_rgb(31_20_11/0.06),0_40px_60px_-30px_rgb(31_20_11/0.55)]" />
                   </Tilt>
                   <div className="mt-3 flex items-center justify-between px-1">
                     <Badge variant={relation(pet) === "Holder" ? "soft" : "outline"}>{pet.active ? relation(pet) : "Retired"}</Badge>

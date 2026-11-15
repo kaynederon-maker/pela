@@ -1,6 +1,6 @@
 import { generateSiweNonce } from "viem/siwe";
-import { rateLimit } from "@/lib/ratelimit";
-import { clientIp, fail, handle, ok, repo } from "@/lib/server";
+import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { fail, handle, ok, repo } from "@/lib/server";
 
 export const dynamic = "force-dynamic";
 

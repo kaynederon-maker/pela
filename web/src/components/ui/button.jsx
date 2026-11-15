@@ -1,4 +1,4 @@
-// shadcn/ui v4 Button, restyled for Pela: printed-paper buttons that press down instead of glowing.
+// shadcn/ui v4 Button, restyled for Pela: board buttons that sit up off the page and press flat when clicked.
 import { cva } from "class-variance-authority";
 import { Slot } from "radix-ui";
 import { cn } from "@/lib/utils";
@@ -14,10 +14,10 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-[0_2px_0_0_var(--primary-shadow),inset_0_1px_0_rgb(255_255_255/0.22)] hover:-translate-y-px hover:shadow-[0_3px_0_0_var(--primary-shadow),inset_0_1px_0_rgb(255_255_255/0.22)]",
+          "bg-primary text-primary-foreground shadow-[0_2px_0_0_var(--primary-shadow),inset_0_1px_0_rgb(255_240_220/0.18),0_12px_24px_-12px_rgb(31_20_11/0.6)] hover:-translate-y-px hover:shadow-[0_3px_0_0_var(--primary-shadow),inset_0_1px_0_rgb(255_240_220/0.18),0_16px_28px_-12px_rgb(31_20_11/0.6)]",
         ink: "bg-foreground text-background shadow-[0_2px_0_0_rgb(0_0_0/0.35)] hover:-translate-y-px hover:bg-foreground/92",
         outline:
-          "border-[1.5px] border-foreground/85 bg-card text-foreground shadow-[0_2px_0_0_var(--foreground)] hover:-translate-y-px hover:bg-accent",
+          "bg-background text-foreground shadow-[inset_1px_1px_0_rgb(255_240_220/0.4),0_1px_0_rgb(31_20_11/0.15),0_10px_22px_-10px_rgb(31_20_11/0.55)] hover:-translate-y-px hover:bg-card",
         ghost: "text-foreground hover:bg-foreground/[0.06]",
         destructive:
           "border-[1.5px] border-destructive/60 bg-card text-destructive shadow-[0_2px_0_0_var(--destructive)] hover:bg-destructive hover:text-white",

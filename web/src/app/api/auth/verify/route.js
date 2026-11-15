@@ -1,9 +1,9 @@
 import { cookies } from "next/headers";
 import { verifySiweLogin } from "@/lib/auth";
 import { chain } from "@/lib/chain";
-import { rateLimit } from "@/lib/ratelimit";
+import { clientIp, rateLimit } from "@/lib/ratelimit";
 import { SESSION_COOKIE, SESSION_TTL_S, getSecret, signSession } from "@/lib/session";
-import { clientIp, fail, handle, ok, repo } from "@/lib/server";
+import { fail, handle, ok, repo } from "@/lib/server";
 
 export const POST = handle(async (req) => {
   if (!rateLimit(`verify:${clientIp(req)}`, 10)) return fail("Too many requests, slow down a little", 429);
@@ -12,7 +12,8 @@ export const POST = handle(async (req) => {
   const address = await verifySiweLogin({
     message: body?.message,
     signature: body?.signature,
-    domain: req.headers.get("host"),
+    // Pin the domain in production so a spoofed Host header can't change what we accept.
+    domain: process.env.APP_DOMAIN || req.headers.get("host"),
     chainId: chain.id,
     consumeNonce: (nonce) => repo().consumeNonce(nonce),
   });
