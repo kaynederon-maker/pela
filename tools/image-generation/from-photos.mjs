@@ -21,35 +21,36 @@ const BELLA =
   "a small short-haired tan and white mixed-breed dog, white blaze down the forehead, dark brindle mask around the eyes, " +
   "white chest and white legs, large upright bat ears, big soulful dark eyes";
 const STYLE =
-  "soft editorial pet photography, seamless paper studio backdrop, soft diffused window light, gentle shadow under the dog, " +
-  "minimalist, elegant, warm and joyful, crisp detailed short fur, sharp eyes, 85mm lens, shallow depth of field";
+  "editorial pet photography, seamless warm kraft paper studio backdrop, tan and caramel brown tones, soft directional window light from the left, " +
+  "natural soft contact shadow on the paper floor, calm and warm mood, crisp detailed short fur, sharp eyes, 85mm lens, shallow depth of field";
 const NEGATIVE =
-  "human, person, hand, fingers, arm, jewelry, ring, sleeve, leather sofa, couch, furniture, blanket, room, clutter, text, watermark, logo, frame, blurry, deformed, extra limbs, " +
-  "extra ears, extra legs, bad anatomy, mutated paws, long fur, fluffy fur, cartoon, illustration, oversaturated, harsh light";
+  "human, person, hand, fingers, jewelry, sofa, couch, leather, cushion, pillow, blanket, furniture, room, window, clutter, harness, straps, " +
+  "sticker, cutout, cut-out edges, halo, white background, pink background, green background, grey background, text, watermark, logo, frame, " +
+  "blurry, deformed, extra limbs, extra ears, extra legs, bad anatomy, mutated paws, long fur, fluffy fur, cartoon, illustration, oversaturated, harsh light";
 
 export const ASSETS = {
   pechi: {
-    source: photo("10"), crop: [60, 190, 1140, 780], width: 1216, height: 832, backdrop: 0xf6e6d2,
-    prompt: `studio portrait of ${PECHI}, resting calmly and looking down to the side, plain warm cream backdrop, ${STYLE}`,
+    source: photo("10"), crop: [0, 260, 1200, 900], width: 1152, height: 864, backdrop: 0xe3c6a4,
+    prompt: `studio portrait of ${PECHI}, lying down calmly and looking to the side, on plain warm kraft paper, ${STYLE}`,
     refs: [[photo("10"), 690, 200, 420, 640], [photo("1142424"), 500, 560, 440, 480], [photo("1133333"), 60, 390, 400, 420]],
-    erase: [[1000, 330, 216, 502], [905, 680, 311, 152]],
-    denoise: 0.78, ipWeight: 0.8, seed: 11,
+    erase: [[990, 220, 162, 470], [870, 545, 282, 125]],
+    denoise: 0.72, ipWeight: 0.8, seed: 21,
   },
   bella: {
-    source: photo("1133"), crop: [0, 420, 1200, 822], width: 1216, height: 832, backdrop: 0xf8e1de,
-    prompt: `studio portrait of ${BELLA}, lying down with one paw stretched forward, looking at the camera, plain soft blush pink backdrop, ${STYLE}`,
+    source: photo("1133"), crop: [0, 420, 1200, 900], width: 1152, height: 864, backdrop: 0xddbd9a,
+    prompt: `full body studio portrait of ${BELLA}, lying on a warm kraft paper floor with front paws crossed, head up and looking at the camera, ${STYLE}`,
     refs: [[photo("1133"), 390, 440, 520, 520], [photo("103"), 650, 380, 340, 330], [photo("124242424"), 230, 520, 280, 300]],
-    erase: [[895, 140, 321, 205], [800, 195, 95, 150], [1120, 325, 96, 45]],
-    denoise: 0.78, ipWeight: 0.8, seed: 12,
+    erase: [[770, 130, 382, 190], [700, 20, 160, 80], [775, 300, 377, 110]],
+    fromScratch: true, ipWeight: 0.72, seed: 44,
   },
   hero: {
-    source: photo("124242424"), crop: [0, 280, 1200, 884], width: 1216, height: 896, backdrop: 0xeef0e6,
+    source: photo("124242424"), crop: [80, 200, 1040, 1337], width: 896, height: 1152, backdrop: 0xd9b793,
     prompt:
-      `(exactly two dogs:1.3) sitting side by side, on the left ${BELLA}, on the right a taller ${PECHI}, ` +
-      `both looking content, sitting together on a soft cream linen cushion with a soft contact shadow, plain pale sage backdrop, ${STYLE}`,
+      `(exactly two dogs:1.3) sitting side by side on a kraft paper floor, on the left ${BELLA}, on the right a taller ${PECHI}, ` +
+      `both looking content, full body, ${STYLE}`,
     refs: [[photo("124242424"), 0, 280, 1200, 884]],
-    erase: [[0, 623, 458, 273], [735, 0, 150, 135], [645, 0, 90, 26], [885, 0, 40, 92], [0, 540, 145, 85], [455, 800, 32, 96]],
-    denoise: 0.8, ipWeight: 0.6, seed: 13,
+    erase: [[0, 600, 250, 552], [250, 870, 190, 282], [250, 640, 70, 230], [60, 584, 190, 18], [318, 805, 50, 70], [0, 548, 200, 62]],
+    denoise: 0.72, ipWeight: 0.6, seed: 23,
   },
 };
 
@@ -121,8 +122,10 @@ async function buildGraph(name, a) {
     model: [model, 0],
     positive: [node("CLIPTextEncode", { text: a.prompt, clip: [ckpt, 1] }), 0],
     negative: [node("CLIPTextEncode", { text: NEGATIVE, clip: [ckpt, 1] }), 0],
-    latent_image: [node("VAEEncode", { pixels: [plate, 0], vae: [ckpt, 2] }), 0],
-    seed: Number(process.env.SEED ?? a.seed), steps: 34, cfg: 5, sampler_name: "dpmpp_2m", scheduler: "karras", denoise: Number(process.env.DENOISE ?? a.denoise),
+    latent_image: a.fromScratch
+      ? [node("EmptyLatentImage", { width: a.width, height: a.height, batch_size: 1 }), 0]
+      : [node("VAEEncode", { pixels: [plate, 0], vae: [ckpt, 2] }), 0],
+    seed: Number(process.env.SEED ?? a.seed), steps: 34, cfg: 5, sampler_name: "dpmpp_2m", scheduler: "karras", denoise: a.fromScratch ? 1 : Number(process.env.DENOISE ?? a.denoise),
   });
   node("SaveImage", { images: [node("VAEDecode", { samples: [sampled, 0], vae: [ckpt, 2] }), 0], filename_prefix: `pela_photo_${name}` });
   return g;

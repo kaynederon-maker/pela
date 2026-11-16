@@ -22,11 +22,13 @@ $env:DEBUG_PLATE=1; node tools\image-generation\from-photos.mjs   # only the cut
 
 Per image, all in one ComfyUI graph:
 1. Crop and resize the photo to the target aspect ratio.
-2. Cut out the dog with RMBG-1.4 (`easy imageRemBg`), apply `ThresholdMask` at 0.5, and subtract per-image `erase` boxes for sofa the dog is touching. Then composite onto the page's backdrop colour (cream, blush or sage).
+2. Cut out the dog with RMBG-1.4 (`easy imageRemBg`), apply `ThresholdMask` at 0.5, and subtract per-image `erase` boxes for sofa the dog is touching. Then composite onto a kraft-paper colour from the site's palette.
 3. IPAdapter Plus (SDXL, ViT-H), fed with *cut-out* close-ups of the same dog from 2-3 other photos, carries the identity: markings, mask, ears.
-4. SDXL img2img (Juggernaut XL) at denoise ~0.8 redraws anatomy, fur and studio lighting, while the plate keeps pose and colours.
+4. SDXL img2img (Juggernaut XL) at denoise 0.72 redraws fur, lighting and the paper floor, while the plate keeps the pose.
 
 Things learned while tuning it:
+- Above about 0.8 the composition drifts (Pechi once came back as a giant cropped head). Around 0.72 keeps the pose and still hides the cut-out edges, as long as the backdrop colour matches the prompt.
+- Every photo of Bella has her lying on the sofa, so any cut-out leaves her limbs resting on nothing. Her image is generated from scratch instead (`fromScratch: true`), with IPAdapter carrying her look from close-ups of her face.
 - Denoise 0.5 keeps every cut-out flaw (sticker look, box edges). 0.8 with strong IPAdapter keeps likeness *and* looks like a real photo.
 - IPAdapter copies anything in its references, including sofa, window and once a human hand. Cut out the references too, and don't use photos with people.
 - RMBG keeps furniture the dog is touching. Erase boxes plus the high-denoise pass clean it up.
