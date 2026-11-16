@@ -23,7 +23,7 @@ if (-not (Test-Path $envFile)) {
     $bytes = New-Object byte[] 32
     [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
     $secret = -join ($bytes | ForEach-Object { $_.ToString("x2") })
-    [IO.File]::WriteAllText($envFile, "SESSION_SECRET=$secret`nNEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545`n")
+    [IO.File]::WriteAllText($envFile, "SESSION_SECRET=$secret`n")
     Write-Host "Created web-app\.env.local with a fresh SESSION_SECRET" -ForegroundColor Green
 }
 
