@@ -122,7 +122,7 @@ export function Gate({ need, children }) {
   if (!ready) return <Loading label="Checking your papers…" />;
   if (!signedIn) {
     return (
-      <div className="mx-auto grid max-w-4xl items-center gap-10 py-10 md:grid-cols-[1.1fr_0.9fr]">
+      <div data-guide="gate" className="mx-auto grid max-w-4xl items-center gap-10 py-10 md:grid-cols-[1.1fr_0.9fr]">
         <div>
           <p className="mono-label mb-4 text-primary-ink">Border control</p>
           <h1 className="display text-[clamp(2.6rem,6vw,4.25rem)]">

@@ -63,7 +63,7 @@ function Dashboard() {
         lede="Every passport you hold, plus the ones you've been trusted to stamp."
         actions={
           <>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" data-guide="pack-roles">
               {roleList.map((r) => {
                 const { label, icon: Icon, tip } = ROLE_INFO[r];
                 return (
@@ -105,7 +105,7 @@ function Dashboard() {
           </Empty>
         )
       ) : (
-        <motion.ul layout className="grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.ul layout data-guide="passports" className="grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence>
             {pets.map((pet, i) => (
               <motion.li
@@ -157,7 +157,7 @@ function RegisterPet({ onDone }) {
   return (
     <Dialog open={open} onOpenChange={(v) => !sending && setOpen(v)}>
       <DialogTrigger asChild>
-        <Button>
+        <Button data-guide="new-passport">
           <Plus /> New passport
         </Button>
       </DialogTrigger>

@@ -68,7 +68,7 @@ export function Hero() {
   });
 
   return (
-    <section id="top" className="relative grid items-center gap-14 pb-16 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10 lg:pb-24">
+    <section id="top" data-guide="hero" className="relative grid items-center gap-14 pb-16 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10 lg:pb-24">
       <div>
         <motion.p {...word(0)} className="mono-label mb-6 flex items-center gap-2 text-primary-ink">
           <span className="size-1.5 rounded-full bg-primary" /> Pet identity · Care records · On-chain
@@ -193,7 +193,7 @@ export function Story() {
   const shown = live ? step : 2;
 
   return (
-    <section id="story" ref={ref} className={cn("relative scroll-mt-24", live && "h-[290vh]")}>
+    <section id="story" data-guide="story" ref={ref} className={cn("relative scroll-mt-24", live && "h-[290vh]")}>
       <div className={cn("grid items-center gap-12 py-20 lg:grid-cols-2", live && "sticky top-0 h-screen py-0")}>
         <div>
           <p className="mono-label mb-4 text-primary-ink">How a record is born</p>
@@ -306,7 +306,7 @@ export function Roles() {
 
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-12">
         <Reveal>
-          <ol className="grid gap-2" role="tablist" aria-label="Roles" aria-orientation="vertical">
+          <ol className="grid gap-2" role="tablist" aria-label="Roles" aria-orientation="vertical" data-guide="roles">
             {ROLES.map((r, i) => {
               const active = i === picked;
               return (
@@ -434,7 +434,7 @@ export function Ledger({ stats }) {
     { label: "Records edited in secret", value: 0, note: "Edits and withdrawals are transactions too." },
   ];
   return (
-    <section id="ledger" className="scroll-mt-24 py-16">
+    <section id="ledger" data-guide="ledger" className="scroll-mt-24 py-16">
       <Reveal className="grid gap-px overflow-hidden rounded-[22px] border border-border bg-border sm:grid-cols-3">
         {items.map((it) => (
           <div key={it.label} className="bg-card p-7 sm:p-9">

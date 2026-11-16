@@ -3,6 +3,7 @@ import { WalletProvider } from "@/components/WalletProvider";
 import { Nav } from "@/components/Nav";
 import { SiteFooter } from "@/components/site-footer";
 import { MotionToggle, SmoothScroll } from "@/components/motion";
+import { GuideProvider } from "@/components/guide";
 import "./globals.css";
 
 // Gabarito for the pressed display type, Instrument Sans for reading, the serif only for one italic word per heading.
@@ -30,14 +31,16 @@ export default function RootLayout({ children }) {
           Skip to content
         </a>
         <WalletProvider>
-          <SmoothScroll>
-            <Nav />
-            <div id="main" className="mx-auto w-full max-w-[1200px] px-5 pt-28 pb-24 sm:px-8">
-              {children}
-            </div>
-            <SiteFooter />
-            <MotionToggle />
-          </SmoothScroll>
+          <GuideProvider>
+            <SmoothScroll>
+              <Nav />
+              <div id="main" className="mx-auto w-full max-w-[1200px] px-5 pt-28 pb-24 sm:px-8">
+                {children}
+              </div>
+              <SiteFooter />
+              <MotionToggle />
+            </SmoothScroll>
+          </GuideProvider>
         </WalletProvider>
       </body>
     </html>

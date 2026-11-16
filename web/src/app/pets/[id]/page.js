@@ -90,7 +90,7 @@ function Pet() {
 
       <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,430px)_1fr] lg:gap-14">
         {/* Left page: the ID */}
-        <aside className="lg:sticky lg:top-28">
+        <aside className="lg:sticky lg:top-28" data-guide="passport-card">
           <Tilt amplitude={7}>
             <PassportCard pet={pet} id={Number(id)} image={petArt(pet)} ownerName={names[pet.owner.toLowerCase()]} />
           </Tilt>
@@ -113,7 +113,7 @@ function Pet() {
           {/* Retiring the pet removes the Settings tab, so fall back to the stamps instead of an empty panel. */}
           <Tabs value={canManage ? tab : "stamps"} onValueChange={setTab}>
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <TabsList>
+              <TabsList data-guide="stamp-tabs">
                 <TabsTrigger value="stamps">
                   <BookOpen /> Stamp book
                 </TabsTrigger>
@@ -196,7 +196,7 @@ function PassportPager({ id }) {
   };
 
   return (
-    <nav aria-label="Passports" className="flex items-center gap-1 rounded-full border border-border bg-card/70 p-1">
+    <nav aria-label="Passports" data-guide="pager" className="flex items-center gap-1 rounded-full border border-border bg-card/70 p-1">
       {step(prev, "prev")}
       <Select value={String(id)} onValueChange={(v) => router.push(`/pets/${v}`)}>
         <SelectTrigger aria-label="Jump to a passport" className="h-10 w-auto min-w-44 border-0 bg-transparent font-mono text-[13px] shadow-none">
@@ -256,7 +256,7 @@ function StampBook({ logs, names, canEditOwn, isAdmin, me, onDone, petName }) {
   }
 
   return (
-    <div className="ruled rounded-[26px] border border-border bg-card p-5 sm:p-7">
+    <div data-guide="stamp-book" className="ruled rounded-[26px] border border-border bg-card p-5 sm:p-7">
       {kindsPresent.length > 1 && (
         <div className="mb-6 flex flex-wrap gap-2" role="radiogroup" aria-label="Filter stamps">
           {[-1, ...kindsPresent].map((k) => {
@@ -394,7 +394,7 @@ function StampDialog({ petId, log, onDone }) {
             <Pencil /> Edit
           </Button>
         ) : (
-          <Button>
+          <Button data-guide="stamp-button">
             <StampIcon /> Stamp the passport
           </Button>
         )}

@@ -6,6 +6,7 @@ import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { Loader2, LogOut, Menu, PawPrint, Wallet } from "lucide-react";
 import { useWallet } from "./WalletProvider";
 import { Button } from "@/components/ui/button";
+import { GuideButton } from "@/components/guide";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ClickSpark } from "@/components/motion";
@@ -30,7 +31,7 @@ function Contents() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5 px-2.5 sm:px-3">
+        <Button variant="ghost" size="sm" className="gap-1.5 px-2.5 sm:px-3" data-guide="contents">
           <span className="hidden sm:inline">Contents</span>
           <Menu />
         </Button>
@@ -91,6 +92,7 @@ export function Nav() {
               <Link
                 key={href}
                 href={href}
+                data-guide={`nav-${label.toLowerCase()}`}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative flex h-10 items-center px-3 text-[15px] font-semibold transition-colors sm:px-3.5",
@@ -107,12 +109,14 @@ export function Nav() {
           })}
         </div>
 
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-0.5 sm:gap-1.5">
+          <GuideButton />
           <Contents />
           {signedIn ? (
             <>
               <Link
                 href="/profile"
+                data-guide="account"
                 className="hidden h-10 items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-semibold transition-colors hover:border-foreground/30 sm:flex"
               >
                 <span className="size-2 rounded-full bg-primary shadow-[0_0_0_3px_var(--accent)]" />
@@ -129,10 +133,10 @@ export function Nav() {
             </>
           ) : (
             <ClickSpark>
-              <Button size="pill" onClick={signIn} disabled={busy}>
+              {/* Icon only on phones, where the nav has no room for the words. */}
+              <Button size="pill" onClick={signIn} disabled={busy} data-guide="connect" aria-label="Connect wallet" className="max-sm:size-11 max-sm:px-0">
                 {busy ? <Loader2 className="animate-spin" /> : <Wallet />}
                 <span className="hidden sm:inline">{busy ? "Check your wallet…" : "Connect wallet"}</span>
-                <span className="sm:hidden">{busy ? "…" : "Connect"}</span>
               </Button>
             </ClickSpark>
           )}

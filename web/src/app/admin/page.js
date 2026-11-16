@@ -58,7 +58,7 @@ function SystemPanel() {
         ))}
       </Reveal>
 
-      <Reveal delay={0.06} className="lg:col-span-5">
+      <Reveal delay={0.06} className="lg:col-span-5" data-guide="system">
         <div className={cn("flex h-full flex-col justify-between gap-6 rounded-[22px] p-7 transition-colors duration-500", stats?.paused ? "bg-destructive text-white" : "bg-moss text-secondary-foreground")}>
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -126,7 +126,7 @@ function RoleDesk() {
   const held = current ? Object.entries(current).filter(([, has]) => has).map(([r]) => r) : [];
 
   return (
-    <Reveal delay={0.1} className="lg:col-span-5">
+    <Reveal delay={0.1} className="lg:col-span-5" data-guide="role-desk">
       <Paper className="grid h-full content-start gap-5">
         <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-full bg-accent text-primary-ink">
@@ -200,7 +200,7 @@ function Directory() {
   const items = (page?.items ?? []).filter((p) => !q || p.displayName.toLowerCase().includes(q) || p.address.includes(q) || p.email.toLowerCase().includes(q));
 
   return (
-    <Reveal delay={0.14} className="lg:col-span-7">
+    <Reveal delay={0.14} className="lg:col-span-7" data-guide="directory">
       <Paper className="h-full">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">

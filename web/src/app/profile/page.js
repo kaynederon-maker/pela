@@ -77,7 +77,7 @@ function ProfileForm() {
       />
 
       <div className="grid items-start gap-8 lg:grid-cols-[1fr_380px]">
-        <Paper as="form" onSubmit={save} className="grid gap-5">
+        <Paper as="form" onSubmit={save} className="grid gap-5" data-guide="profile-form">
           <Field label="Display name" value={form.displayName} onChange={set("displayName")} maxLength={40} required error={errors.displayName} placeholder="Dr. Rina, DVM" />
           <Field
             label={
@@ -94,7 +94,7 @@ function ProfileForm() {
           />
           <Field as="textarea" rows={3} label="Bio" value={form.bio} onChange={set("bio")} maxLength={280} error={errors.bio} placeholder="Malinois parent, weekend agility enthusiast." />
 
-          <fieldset>
+          <fieldset data-guide="accent">
             <legend className="mono-label mb-2 text-muted-foreground">Accent colour</legend>
             <div className="grid grid-cols-3 gap-3" role="radiogroup" aria-label="Accent colour">
               {ACCENTS.map((a) => {
@@ -157,7 +157,7 @@ function ProfileForm() {
         </Paper>
 
         {/* Live preview */}
-        <aside className="lg:sticky lg:top-28">
+        <aside className="lg:sticky lg:top-28" data-guide="preview">
           <p className="mono-label mb-3 text-muted-foreground">Preview: what vets see</p>
           <motion.div layout className="relative overflow-hidden rounded-[26px] border border-border bg-card p-6 shadow-[0_30px_60px_-34px_rgb(31_20_11/0.5)]">
             <div className="flex items-center gap-4">

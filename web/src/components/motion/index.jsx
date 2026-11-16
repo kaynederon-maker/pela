@@ -292,6 +292,7 @@ export function MotionToggle() {
     <button
       type="button"
       onClick={toggleMotion}
+      data-guide="motion"
       aria-pressed={motionPaused}
       aria-label="Pause motion"
       className="fixed right-3 bottom-3 z-40 flex h-9 items-center gap-1.5 rounded-full border border-border bg-card/90 px-3.5 font-mono text-[11px] tracking-[0.08em] text-muted-foreground uppercase backdrop-blur transition-colors hover:text-foreground sm:right-5 sm:bottom-5"
