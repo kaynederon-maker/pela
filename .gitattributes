@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.png binary
+*.sol linguist-language=Solidity linguist-detectable=true
+web-app/src/lib/contract.json linguist-generated=true
+smart-contract/deployments/*.json linguist-generated=true
