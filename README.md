@@ -106,6 +106,28 @@ cd web-app && npm test                              # sessions, sign-in, validat
 cd web-app && npm run test:e2e                      # live API; needs the chain, a deploy and npm run dev
 ```
 
+## Settings
+
+Each part reads its settings from an env file you create by copying the example next to it. Never commit the real files.
+
+`web-app/.env.local` (copy of `web-app/.env.example`; `setup.ps1` makes one for you):
+
+| Setting | What it's for |
+|---------|---------------|
+| `SESSION_SECRET` | Required. 32+ random characters; signs the session cookie |
+| `NEXT_PUBLIC_RPC_URL` | Optional. Leave empty to use the public RPC of the chain in `src/lib/contract.json` (127.0.0.1:8545 for a local deploy, a public Sepolia node for Sepolia) |
+| `DB_PATH` | Optional. Where the SQLite file for profiles lives; defaults to `./pela.db` |
+| `APP_DOMAIN` | Production only. The exact host people sign in on, such as `pela.example.com`; sign-in messages for any other domain are rejected |
+| `TRUST_PROXY` | Set to `1` only behind a reverse proxy you control that sets `X-Forwarded-For`, so rate limits go per client IP |
+
+`smart-contract/.env` (copy of `smart-contract/.env.example`; only needed to deploy to Sepolia):
+
+| Setting | What it's for |
+|---------|---------------|
+| `DEPLOYER_PRIVATE_KEY` | The wallet that deploys the contract and becomes its admin. Use a throwaway, testnet-only key |
+| `SEPOLIA_RPC_URL` | Optional. Defaults to the free public node `https://ethereum-sepolia-rpc.publicnode.com` |
+| `ETHERSCAN_API_KEY` | Optional. Lets `npx hardhat verify` publish the contract source on Etherscan |
+
 ## Deploying
 
 The contract: fill in `smart-contract/.env` from `.env.example` with a throwaway, testnet-only key funded from a faucet, then run `npm run deploy:sepolia`. The script writes the address and ABI to `web-app/src/lib/contract.json` and records the deployment in `smart-contract/deployments/sepolia.json`; commit both. The deployer becomes the admin.
